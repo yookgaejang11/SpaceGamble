@@ -15,7 +15,9 @@ public class GamePer : ScriptableObject
     public int downMinVal = 1;
     public int extraVal = 20;
 
-
+    [Header("시간")]
+    public float talkingTime = 20f;
+    public float cutSceneTime = 10f;
     [Header("사출 확률")]
     public int basicPer = 10;
 }

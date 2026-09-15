@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,29 +9,37 @@ public enum Result
     draw,
     fold
 }
-
+public enum GamePhase
+{
+    RoundStart,   // ì¹´ë“œ ë°°ì •, ìƒëŒ€ ìˆ«ì ê³µê°œ
+    SelectTime,   // ëŒ€í™” íƒ€ì´ë¨¸, Fold ì„ íƒ
+    OpenFold,       // Fold ì—¬ë¶€ ê³µê°œ, ëˆ„ë¥¼ ì‚¬ëŒ ê³µê°œ
+    Press,        // ë²„íŠ¼ ëˆ„ë¥´ê¸° ëŒ€ê¸°
+    Result,       // ì‚¬ê³  ì—¬ë¶€, í™•ë¥  ë³€ë™ ê³µê°œ
+    GameOver      // ìŠ¹íŒ¨ í™”ë©´
+}
 
 [Serializable]
 public class GameSession
 {
 
-    public int curOutPer;                 //ÇöÀç »çÃâÈ®·ü
+    public int curOutPer;                 //í˜„ì¬ ì‚¬ì¶œí™•ë¥ 
 
-    public int winnerId = -1;                    //°ÔÀÓ ½ÂÀÚ ¹øÈ£(0,1)
+    public int winnerId = -1;                    //ê²Œì„ ìŠ¹ì ë²ˆí˜¸(0,1)
 
-    public int pressedPlayer;                  //´­·¯¾ß ÇÏ´Â »ç¶÷
+    public int pressedPlayer;                  //ëˆŒëŸ¬ì•¼ í•˜ëŠ” ì‚¬ëŒ
 
-    public int[] cardNums = new int[2];     //»ÌÀº Ä«µå ¹øÈ£
+    public int[] cardNums = new int[2];     //ë½‘ì€ ì¹´ë“œ ë²ˆí˜¸
 
-    public int[] foldCounts = new int[2];   //Æ÷±â È½¼ö
+    public int[] foldCounts = new int[2];   //í¬ê¸° íšŸìˆ˜
 
-    public int maxFold = 2;                 //ÃÖ´ë fold È½¼ö
+    public int maxFold = 2;                 //ìµœëŒ€ fold íšŸìˆ˜
 
-    public bool isGameOver;                 //°ÔÀÓ³¡³µ´ÂÁö
+    public bool isGameOver;                 //ê²Œì„ëë‚¬ëŠ”ì§€
 
-    public int curRound = 0;                    //ÇöÀç ¶ó¿îµå
+    public int curRound = 0;                    //í˜„ì¬ ë¼ìš´ë“œ
 
-    public bool[] isFold = new bool[2];     //Æ÷±â ¿©ºÎ
+    public bool[] isFold = new bool[2];     //í¬ê¸° ì—¬ë¶€
 
     System.Random rand = new System.Random();
 
@@ -119,26 +127,12 @@ public class GameSession
 
 public class GameManager : MonoBehaviour
 {
-
     public GamePer SOGameRule;
-
     public GamePer gameRule;
+    public GameClient[] clients = new GameClient[2];
 
-    private void Awake()
-    {
-    }
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        gameRule = Instantiate(SOGameRule);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
+    GameSession session;
+    GamePhase curPhase;
+    float discussionTimer;
 }
 
