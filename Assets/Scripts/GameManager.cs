@@ -12,8 +12,8 @@ public enum Result
 public enum GamePhase
 {
     RoundStart,   // 카드 배정, 상대 숫자 공개
-    SelectTime,   // 대화 타이머, Fold 선택
-    OpenFold,       // Fold 여부 공개, 누를 사람 공개
+    talkTime,   // 대화 타이머, Fold 선택
+    Open,       // Fold 여부 공개, 누를 사람 공개
     Press,        // 버튼 누르기 대기
     Result,       // 사고 여부, 확률 변동 공개
     GameOver      // 승패 화면
@@ -132,7 +132,133 @@ public class GameManager : MonoBehaviour
     public GameClient[] clients = new GameClient[2];
 
     GameSession session;
-    GamePhase curPhase;
-    float discussionTimer;
+    public GamePhase curPhase;
+    float talkTimer;
+
+    private void Start()
+    {
+        gameRule = Instantiate(SOGameRule);
+    }
+
+    public void StartGame()
+    {
+        session = new GameSession();
+        session.curOutPer = gameRule.basicPer;
+        BeginRound();
+    }
+
+    public void BeginRound()
+    {
+        session.StartRound();
+       
+        clients[0].ReceiveOpponentCard(session.cardNums[1]);
+        clients[1].ReceiveOpponentCard(session.cardNums[0]);
+
+        clients[0].ReceiveRound(session.curRound);
+        clients[1].ReceiveRound(session.curRound);
+
+        clients[0].ReceiveMyFoldLeft(session.maxFold-session.foldCounts[0]);
+        clients[1].ReceiveMyFoldLeft(session.maxFold-session.foldCounts[1]);
+        ChangePhase(GamePhase.RoundStart);
+    }
+
+    public void ChangePhase(GamePhase phase)
+    {
+        curPhase = phase;
+        clients[0].ReceivePhase(phase);
+        clients[1].ReceivePhase(phase);
+    }
+
+    void BeginTalk()
+    {
+        talkTimer = gameRule.talkingTime;
+        ChangePhase(GamePhase.talkTime);
+    }
+
+    void EndTalk()
+    {
+        clients[0].ReceiveFoldResult(session.isFold[0], session.isFold[1]);
+        clients[1].ReceiveFoldResult(session.isFold[1], session.isFold[0]);
+
+        Result r = session.DecideResult();
+
+        clients[0].ReceiveRoundResult(r, session.pressedPlayer == 0);
+        clients[1].ReceiveRoundResult(r, session.pressedPlayer == 1);
+
+        ChangePhase(GamePhase.Open);
+    }
+
+    void AfterOpen()
+    {
+        if (session.pressedPlayer == -1)
+            BeginRound();               // fold 또는 draw
+        else
+            ChangePhase(GamePhase.Press);
+    }
+
+    void AfterResult()
+    {
+        if (session.isGameOver)
+        {
+            clients[0].ReceiveGameOver(session.winnerId == 0);
+            clients[1].ReceiveGameOver(session.winnerId == 1);
+            ChangePhase(GamePhase.GameOver);
+        }
+        else
+        {
+            BeginRound();
+        }
+    }
+
+    void Update()
+    {
+        if (curPhase != GamePhase.talkTime) return;
+
+        talkTimer -= Time.deltaTime;
+
+        clients[0].ReceiveTimer(talkTimer);
+        clients[1].ReceiveTimer(talkTimer);
+
+        if (talkTimer <= 0f)
+            EndTalk();
+    }
+
+
+    public void RequestFold(int playerIndex)
+    {
+        if (curPhase != GamePhase.talkTime) return;
+
+        if (session.TryFold(playerIndex))
+            clients[playerIndex].ReceiveMyFoldLeft(session.maxFold - session.foldCounts[playerIndex]);
+    }
+
+    public void RequestPress(int playerIndex)
+    {
+        if (curPhase != GamePhase.Press) return;
+        if (playerIndex != session.pressedPlayer) return;
+
+        int before = session.curOutPer;
+        session.PressButton(gameRule);
+
+        clients[0].ReceiveOutResult(session.isGameOver);
+        clients[1].ReceiveOutResult(session.isGameOver);
+
+        clients[0].ReceivePer(before, session.curOutPer);
+        clients[1].ReceivePer(before, session.curOutPer);
+
+        ChangePhase(GamePhase.Result);
+    }
+
+    public void NotifyPresentationEnd(int playerIndex, GamePhase phase)
+    {
+        if (curPhase != phase) return;
+
+        switch (phase)
+        {
+            case GamePhase.RoundStart: BeginTalk(); break;
+            case GamePhase.Open: AfterOpen(); break;
+            case GamePhase.Result: AfterResult(); break;
+        }
+    }
 }
 
