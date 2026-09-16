@@ -138,6 +138,8 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         gameRule = Instantiate(SOGameRule);
+
+        StartGame();
     }
 
     public void StartGame()
@@ -259,6 +261,19 @@ public class GameManager : MonoBehaviour
             case GamePhase.Open: AfterOpen(); break;
             case GamePhase.Result: AfterResult(); break;
         }
+    }
+
+    void OnGUI()
+    {
+        if (session == null) return;
+        GUILayout.BeginArea(new Rect(460, 0, 250, 300));
+        GUILayout.Label("=== SERVER ===");
+        GUILayout.Label($"round {session.curRound}  phase {curPhase}");
+        GUILayout.Label($"cards: {session.cardNums[0]} / {session.cardNums[1]}");
+        GUILayout.Label($"per: {session.curOutPer}%");
+        GUILayout.Label($"presser: {session.pressedPlayer}");
+        GUILayout.Label($"timer: {talkTimer:F1}");
+        GUILayout.EndArea();
     }
 }
 

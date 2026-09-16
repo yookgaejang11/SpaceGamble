@@ -18,6 +18,7 @@ public class GameClient : MonoBehaviour
     public event Action<int, int> OnPerChanged;
     public event Action<bool> OnGameWin;
     public event Action<int> OnMyFoldLeftChanged;//폴드 값
+    public int opponentCard; //숫자
 
     public void ReceiveMyFoldLeft(int foldLeft)
     {
@@ -37,6 +38,7 @@ public class GameClient : MonoBehaviour
     public void ReceiveOpponentCard(int card)
     {
         OnNumberSelected?.Invoke(card);
+        opponentCard = card;
     }
 
     public void ReceiveTimer(float remainTime)
@@ -76,4 +78,16 @@ public class GameClient : MonoBehaviour
     /// 연출끝
     /// </summary>
     public void EndPresentation() { gameManager.NotifyPresentationEnd(myIndex, curPhase); }
+
+    void OnGUI()
+    {
+        GUILayout.BeginArea(new Rect(myIndex * 220, 0, 210, 300));
+        GUILayout.Label($"상대 카드: {opponentCard}");
+        GUILayout.Label($"P{myIndex}  phase: {curPhase}");
+        GUILayout.Label($"fold left: {foldLeft}");
+        if (GUILayout.Button("Fold")) RequestFold();
+        if (GUILayout.Button("Press")) RequestPress();
+        if (GUILayout.Button("연출끝")) EndPresentation();
+        GUILayout.EndArea();
+    }
 }
