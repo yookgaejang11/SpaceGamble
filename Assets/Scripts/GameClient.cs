@@ -20,7 +20,20 @@ public class GameClient : NetworkBehaviour
     public event Action<int> OnMyFoldLeftChanged;//폴드 값
     public int opponentCard; //숫자
 
+    public override void OnNetworkSpawn()
+    {
+        gameManager = GameManager.Instance;
+    }
+
     public RpcParams ToMe => RpcTarget.Single(OwnerClientId, RpcTargetUse.Temp);
+
+    [Rpc(SendTo.SpecifiedInParams)]
+    public void SetIndexRpc(int index, RpcParams parms)
+    {
+        myIndex = index;
+    }
+
+ 
 
     [Rpc(SendTo.SpecifiedInParams)]
     public void ReceiveMyFoldLeftRpc(int foldLeft, RpcParams parms)

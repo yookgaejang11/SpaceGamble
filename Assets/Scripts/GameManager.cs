@@ -134,13 +134,43 @@ public class GameManager : NetworkBehaviour
     GameSession session;
     public GamePhase curPhase;
     float talkTimer;
+    public static GameManager Instance { get; private set; }
+
+    void Awake()
+    {
+        Instance = this;
+    }
 
     private void Start()
     {
         gameRule = Instantiate(SOGameRule);
 
-        StartGame();
     }
+
+    public override void OnNetworkSpawn()
+    {
+        if (!IsServer) return;
+
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+
+        foreach (var id in NetworkManager.Singleton.ConnectedClientsIds)
+            OnClientConnected(id);
+    }
+
+    void OnClientConnected(ulong clientId)
+    {
+        var netObj = NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject;
+        var client = netObj.GetComponent<GameClient>();
+
+        int index = (clients[0] == null) ? 0 : 1;
+        clients[index] = client;
+        client.myIndex = index;
+        client.SetIndexRpc(index, client.ToMe);
+
+        if (clients[0] != null && clients[1] != null)
+            StartGame();
+    }
+
 
     public void StartGame()
     {
@@ -153,22 +183,22 @@ public class GameManager : NetworkBehaviour
     {
         session.StartRound();
        
-        clients[0].ReceiveOpponentCard(session.cardNums[1]);
-        clients[1].ReceiveOpponentCard(session.cardNums[0]);
+        clients[0].ReceiveOpponentCardRpc(session.cardNums[0], clients[0].ToMe);
+        clients[1].ReceiveOpponentCardRpc(session.cardNums[1], clients[1].ToMe);
 
-        clients[0].ReceiveRound(session.curRound);
-        clients[1].ReceiveRound(session.curRound);
+        clients[0].ReceiveRoundRpc(session.curRound, clients[0].ToMe);
+        clients[1].ReceiveRoundRpc(session.curRound, clients[1].ToMe);
 
-        clients[0].ReceiveMyFoldLeftRpc(session.maxFold-session.foldCounts[0]);
-        clients[1].ReceiveMyFoldLeftRpc(session.maxFold-session.foldCounts[1]);
+        clients[0].ReceiveMyFoldLeftRpc(session.maxFold-session.foldCounts[0], clients[0].ToMe);
+        clients[1].ReceiveMyFoldLeftRpc(session.maxFold-session.foldCounts[1], clients[1].ToMe);
         ChangePhase(GamePhase.RoundStart);
     }
 
     public void ChangePhase(GamePhase phase)
     {
         curPhase = phase;
-        clients[0].ReceivePhase(phase);
-        clients[1].ReceivePhase(phase);
+        clients[0].ReceivePhaseRpc(phase, clients[0].ToMe);
+        clients[1].ReceivePhaseRpc(phase, clients[1].ToMe);
     }
 
     void BeginTalk()
@@ -179,13 +209,13 @@ public class GameManager : NetworkBehaviour
 
     void EndTalk()
     {
-        clients[0].ReceiveFoldResult(session.isFold[0], session.isFold[1]);
-        clients[1].ReceiveFoldResult(session.isFold[1], session.isFold[0]);
+        clients[0].ReceiveFoldResultRpc(session.isFold[0], session.isFold[1], clients[0].ToMe);
+        clients[1].ReceiveFoldResultRpc(session.isFold[1], session.isFold[0], clients[1].ToMe);
 
         Result r = session.DecideResult();
 
-        clients[0].ReceiveRoundResult(r, session.pressedPlayer == 0);
-        clients[1].ReceiveRoundResult(r, session.pressedPlayer == 1);
+        clients[0].ReceiveRoundResultRpc(r, session.pressedPlayer == 0, clients[0].ToMe);
+        clients[1].ReceiveRoundResultRpc(r, session.pressedPlayer == 1, clients[1].ToMe);
 
         ChangePhase(GamePhase.Open);
     }
@@ -202,8 +232,8 @@ public class GameManager : NetworkBehaviour
     {
         if (session.isGameOver)
         {
-            clients[0].ReceiveGameOver(session.winnerId == 0);
-            clients[1].ReceiveGameOver(session.winnerId == 1);
+            clients[0].ReceiveGameOverRpc(session.winnerId == 0, clients[0].ToMe);
+            clients[1].ReceiveGameOverRpc(session.winnerId == 1, clients[1].ToMe);
             ChangePhase(GamePhase.GameOver);
         }
         else
@@ -219,8 +249,8 @@ public class GameManager : NetworkBehaviour
 
         talkTimer -= Time.deltaTime;
 
-        clients[0].ReceiveTimer(talkTimer);
-        clients[1].ReceiveTimer(talkTimer);
+        clients[0].ReceiveTimerRpc(talkTimer, clients[0].ToMe);
+        clients[1].ReceiveTimerRpc(talkTimer,clients[1].ToMe);
 
         if (talkTimer <= 0f)
             EndTalk();
@@ -232,7 +262,7 @@ public class GameManager : NetworkBehaviour
         if (curPhase != GamePhase.talkTime) return;
 
         if (session.TryFold(playerIndex))
-            clients[playerIndex].ReceiveMyFoldLeftRpc(session.maxFold - session.foldCounts[playerIndex]);
+            clients[playerIndex].ReceiveMyFoldLeftRpc(session.maxFold - session.foldCounts[playerIndex], clients[playerIndex].ToMe);
     }
 
     public void RequestPress(int playerIndex)
@@ -243,11 +273,11 @@ public class GameManager : NetworkBehaviour
         int before = session.curOutPer;
         session.PressButton(gameRule);
 
-        clients[0].ReceiveOutResult(session.isGameOver);
-        clients[1].ReceiveOutResult(session.isGameOver);
+        clients[0].ReceiveOutResultRpc(session.isGameOver, clients[0].ToMe);
+        clients[1].ReceiveOutResultRpc(session.isGameOver, clients[1].ToMe);
 
-        clients[0].ReceivePer(before, session.curOutPer);
-        clients[1].ReceivePer(before, session.curOutPer);
+        clients[0].ReceivePerRpc(before, session.curOutPer, clients[0].ToMe);
+        clients[1].ReceivePerRpc(before, session.curOutPer, clients[1].ToMe);
 
         ChangePhase(GamePhase.Result);
     }
