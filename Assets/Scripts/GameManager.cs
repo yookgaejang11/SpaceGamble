@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Unity.Netcode;
 public enum Result
 {
     p1Win,
@@ -125,7 +125,7 @@ public class GameSession
 }
 
 
-public class GameManager : MonoBehaviour
+public class GameManager : NetworkBehaviour
 {
     public GamePer SOGameRule;
     public GamePer gameRule;
@@ -159,8 +159,8 @@ public class GameManager : MonoBehaviour
         clients[0].ReceiveRound(session.curRound);
         clients[1].ReceiveRound(session.curRound);
 
-        clients[0].ReceiveMyFoldLeft(session.maxFold-session.foldCounts[0]);
-        clients[1].ReceiveMyFoldLeft(session.maxFold-session.foldCounts[1]);
+        clients[0].ReceiveMyFoldLeftRpc(session.maxFold-session.foldCounts[0]);
+        clients[1].ReceiveMyFoldLeftRpc(session.maxFold-session.foldCounts[1]);
         ChangePhase(GamePhase.RoundStart);
     }
 
@@ -214,6 +214,7 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
+        if (!IsServer) return;
         if (curPhase != GamePhase.talkTime) return;
 
         talkTimer -= Time.deltaTime;
@@ -231,7 +232,7 @@ public class GameManager : MonoBehaviour
         if (curPhase != GamePhase.talkTime) return;
 
         if (session.TryFold(playerIndex))
-            clients[playerIndex].ReceiveMyFoldLeft(session.maxFold - session.foldCounts[playerIndex]);
+            clients[playerIndex].ReceiveMyFoldLeftRpc(session.maxFold - session.foldCounts[playerIndex]);
     }
 
     public void RequestPress(int playerIndex)

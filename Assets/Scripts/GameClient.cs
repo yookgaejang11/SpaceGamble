@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
-
-public class GameClient : MonoBehaviour
+using Unity.Netcode;
+public class GameClient : NetworkBehaviour
 {
     public GameManager gameManager;
     public int myIndex;
@@ -20,67 +20,106 @@ public class GameClient : MonoBehaviour
     public event Action<int> OnMyFoldLeftChanged;//폴드 값
     public int opponentCard; //숫자
 
-    public void ReceiveMyFoldLeft(int foldLeft)
+    public RpcParams ToMe => RpcTarget.Single(OwnerClientId, RpcTargetUse.Temp);
+
+    [Rpc(SendTo.SpecifiedInParams)]
+    public void ReceiveMyFoldLeftRpc(int foldLeft, RpcParams parms)
     {
+        this.foldLeft = foldLeft;
         OnMyFoldLeftChanged?.Invoke(foldLeft);
     }
-    public void ReceivePhase(GamePhase phase)
+
+    [Rpc(SendTo.SpecifiedInParams)]
+    public void ReceivePhaseRpc(GamePhase phase, RpcParams parms)
     {
         curPhase = phase;
         OnChangedPhase?.Invoke(phase);
     }
 
-    public void ReceiveRound(int round)
+    [Rpc(SendTo.SpecifiedInParams)]
+    public void ReceiveRoundRpc(int round, RpcParams parms)
     {
         OnRoundChanged?.Invoke(round);
     }
 
-    public void ReceiveOpponentCard(int card)
+    [Rpc(SendTo.SpecifiedInParams)]
+    public void ReceiveOpponentCardRpc(int card, RpcParams parms)
     {
         OnNumberSelected?.Invoke(card);
         opponentCard = card;
     }
 
-    public void ReceiveTimer(float remainTime)
+    [Rpc(SendTo.SpecifiedInParams)]
+    public void ReceiveTimerRpc(float remainTime, RpcParams parms)
     {
         OnTimeChanged?.Invoke(remainTime);
     }
 
-    public void ReceiveFoldResult(bool myFold, bool opponentFold)
+    [Rpc(SendTo.SpecifiedInParams)]
+    public void ReceiveFoldResultRpc(bool myFold, bool opponentFold, RpcParams parms)
     {
         OnFoldSelected?.Invoke(myFold, opponentFold);
     }
 
-    public void ReceiveRoundResult(Result result, bool isMyTurn)
+    [Rpc(SendTo.SpecifiedInParams)]
+    public void ReceiveRoundResultRpc(Result result, bool isMyTurn, RpcParams parms)
     {
         OnRoundDecided?.Invoke(result, isMyTurn);
     }
 
-    public void ReceiveOutResult(bool isOuted)
+    [Rpc(SendTo.SpecifiedInParams)]
+    public void ReceiveOutResultRpc(bool isOuted, RpcParams parms)
     {
         OnOuted?.Invoke(isOuted);
     }
 
-    public void ReceivePer(int beforePer, int curPer)
+    [Rpc(SendTo.SpecifiedInParams)]
+    public void ReceivePerRpc(int beforePer, int curPer, RpcParams parms)
     {
         OnPerChanged?.Invoke(beforePer, curPer);
     }
 
-    public void ReceiveGameOver(bool isWin)
+    [Rpc(SendTo.SpecifiedInParams)]
+    public void ReceiveGameOverRpc(bool isWin, RpcParams parms)
     {
         OnGameWin?.Invoke(isWin);
     }
 
-    public void RequestFold() { gameManager.RequestFold(myIndex); }
-    public void RequestPress() { gameManager.RequestPress(myIndex); }
+    
+    public void RequestFold() 
+    {
+        if (!IsOwner) return;
+        RequestToFoldRpc();
+    }
 
-    /// <summary>
-    /// 연출끝
-    /// </summary>
-    public void EndPresentation() { gameManager.NotifyPresentationEnd(myIndex, curPhase); }
+    [Rpc(SendTo.Server)]
+    void RequestToFoldRpc()
+    {
+        gameManager.RequestFold(myIndex);
+    }
+
+    public void RequestPress()
+    {
+        if (!IsOwner) return;
+        RequestToPressRpc();
+    }
+
+    [Rpc(SendTo.Server)]
+    void RequestToPressRpc() { gameManager.RequestPress(myIndex); }
+
+
+    public void EndPresentation()
+    {
+        if (!IsOwner) return;
+        EndPresentationRpc(curPhase);
+    }
+
+    [Rpc(SendTo.Server)]
+    void EndPresentationRpc(GamePhase phase) { gameManager.NotifyPresentationEnd(myIndex, phase); }
 
     void OnGUI()
     {
+        if(!IsOwner) return;
         GUILayout.BeginArea(new Rect(myIndex * 220, 0, 210, 300));
         GUILayout.Label($"상대 카드: {opponentCard}");
         GUILayout.Label($"P{myIndex}  phase: {curPhase}");
