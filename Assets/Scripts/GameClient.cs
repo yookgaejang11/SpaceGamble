@@ -7,6 +7,7 @@ public class GameClient : NetworkBehaviour
     public int myIndex;
     public int foldLeft;
     public GamePhase curPhase;
+    public bool mySelection;
 
     public event Action<GamePhase> OnChangedPhase;//페이즈 변경시
     public event Action<int> OnRoundChanged;//라운드 변경시
@@ -18,6 +19,7 @@ public class GameClient : NetworkBehaviour
     public event Action<int, int> OnPerChanged;
     public event Action<bool> OnGameWin;
     public event Action<int> OnMyFoldLeftChanged;//폴드 값
+    public event Action<bool> OnMySelectionChanged;//go,fold 바뀜
     public int opponentCard; //숫자
 
     public override void OnNetworkSpawn()
@@ -52,6 +54,8 @@ public class GameClient : NetworkBehaviour
     [Rpc(SendTo.SpecifiedInParams)]
     public void ReceiveRoundRpc(int round, RpcParams parms)
     {
+        mySelection = false;
+        OnMySelectionChanged?.Invoke(false);
         OnRoundChanged?.Invoke(round);
     }
 
@@ -98,10 +102,29 @@ public class GameClient : NetworkBehaviour
         OnGameWin?.Invoke(isWin);
     }
 
-    
+
+    public void RequestGo()
+    {
+        if (!IsOwner) return;
+        mySelection = false;
+        OnMySelectionChanged?.Invoke(false);
+        RequestToGoRpc();
+    }
+
+    [Rpc(SendTo.Server)]
+    void RequestToGoRpc()
+    {
+        gameManager.RequestFold(myIndex);
+    }
+
+
+
     public void RequestFold() 
     {
         if (!IsOwner) return;
+        if (foldLeft <= 0) return;      // 로컬 차단
+        mySelection = true;
+        OnMySelectionChanged?.Invoke(true);
         RequestToFoldRpc();
     }
 
@@ -132,7 +155,7 @@ public class GameClient : NetworkBehaviour
 
     void OnGUI()
     {
-        if(!IsOwner) return;
+        if (!IsOwner) return;
         GUILayout.BeginArea(new Rect(myIndex * 220, 0, 210, 300));
         GUILayout.Label($"상대 카드: {opponentCard}");
         GUILayout.Label($"P{myIndex}  phase: {curPhase}");

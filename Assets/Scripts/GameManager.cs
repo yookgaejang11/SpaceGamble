@@ -74,16 +74,7 @@ public class GameSession
         }
     }
 
-    public bool TryFold(int playerNum)
-    {
-        if (foldCounts[playerNum] <maxFold && !isFold[playerNum])
-        {
-            foldCounts[playerNum] += 1;
-            isFold[playerNum] = true;
-            return true;
-        }
-        return false;
-    }
+    public bool CanFold(int playerNum) => foldCounts[playerNum] < maxFold;
 
     public void PressButton(GamePer gamePer)
     {
@@ -160,7 +151,15 @@ public class GameManager : NetworkBehaviour
     void OnClientConnected(ulong clientId)
     {
         var netObj = NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject;
+        if (netObj == null) return;
+
         var client = netObj.GetComponent<GameClient>();
+
+        // 이미 등록된 오브젝트면 무시
+        if (clients[0] == client || clients[1] == client) return;
+
+        // 자리가 없으면 무시
+        if (clients[0] != null && clients[1] != null) return;
 
         int index = (clients[0] == null) ? 0 : 1;
         clients[index] = client;
@@ -170,7 +169,6 @@ public class GameManager : NetworkBehaviour
         if (clients[0] != null && clients[1] != null)
             StartGame();
     }
-
 
     public void StartGame()
     {
@@ -182,9 +180,9 @@ public class GameManager : NetworkBehaviour
     public void BeginRound()
     {
         session.StartRound();
-       
-        clients[0].ReceiveOpponentCardRpc(session.cardNums[0], clients[0].ToMe);
-        clients[1].ReceiveOpponentCardRpc(session.cardNums[1], clients[1].ToMe);
+        
+        clients[0].ReceiveOpponentCardRpc(session.cardNums[1], clients[0].ToMe);
+        clients[1].ReceiveOpponentCardRpc(session.cardNums[0], clients[1].ToMe);
 
         clients[0].ReceiveRoundRpc(session.curRound, clients[0].ToMe);
         clients[1].ReceiveRoundRpc(session.curRound, clients[1].ToMe);
@@ -207,8 +205,19 @@ public class GameManager : NetworkBehaviour
         ChangePhase(GamePhase.talkTime);
     }
 
+
+
     void EndTalk()
     {
+        for(int i = 0; i< 2; i++)
+        {
+            if (session.isFold[i])
+            {
+                session.foldCounts[i] += 1;
+                clients[i].ReceiveMyFoldLeftRpc(session.maxFold - session.foldCounts[i], clients[i].ToMe);
+            }
+        }
+
         clients[0].ReceiveFoldResultRpc(session.isFold[0], session.isFold[1], clients[0].ToMe);
         clients[1].ReceiveFoldResultRpc(session.isFold[1], session.isFold[0], clients[1].ToMe);
 
@@ -256,17 +265,22 @@ public class GameManager : NetworkBehaviour
             EndTalk();
     }
 
+    public void RequestGo(int playerIndex)
+    {
+        if (curPhase != GamePhase.talkTime) return;
+        session.isFold[playerIndex] = false;
+    }
 
     public void RequestFold(int playerIndex)
     {
         if (curPhase != GamePhase.talkTime) return;
 
-        if (session.TryFold(playerIndex))
-            clients[playerIndex].ReceiveMyFoldLeftRpc(session.maxFold - session.foldCounts[playerIndex], clients[playerIndex].ToMe);
+        session.isFold[playerIndex] = session.CanFold(playerIndex);//시간 끝나고 폴드 감소 되게(대화하는동안 언제든지 바꿀 수 있게끔)
     }
 
     public void RequestPress(int playerIndex)
     {
+        Debug.Log($"도착: {playerIndex}, phase={curPhase}, presser={session.pressedPlayer}");
         if (curPhase != GamePhase.Press) return;
         if (playerIndex != session.pressedPlayer) return;
 
