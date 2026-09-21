@@ -121,7 +121,7 @@ public class GameManager : NetworkBehaviour
     public GamePer SOGameRule;
     public GamePer gameRule;
     public GameClient[] clients = new GameClient[2];
-
+    public bool[] isPresentationEnded = new bool[2];
     GameSession session;
     public GamePhase curPhase;
     float talkTimer;
@@ -197,11 +197,17 @@ public class GameManager : NetworkBehaviour
         curPhase = phase;
         clients[0].ReceivePhaseRpc(phase, clients[0].ToMe);
         clients[1].ReceivePhaseRpc(phase, clients[1].ToMe);
+
+        isPresentationEnded[0] = false;
+        isPresentationEnded[1] = false;
+
     }
 
     void BeginTalk()
     {
         talkTimer = gameRule.talkingTime;
+        clients[0].ReceiveTimerRpc(talkTimer, clients[0].ToMe);
+        clients[1].ReceiveTimerRpc(talkTimer, clients[1].ToMe);
         ChangePhase(GamePhase.talkTime);
     }
 
@@ -209,6 +215,7 @@ public class GameManager : NetworkBehaviour
 
     void EndTalk()
     {
+        if (curPhase != GamePhase.talkTime) return;
         for(int i = 0; i< 2; i++)
         {
             if (session.isFold[i])
@@ -258,8 +265,6 @@ public class GameManager : NetworkBehaviour
 
         talkTimer -= Time.deltaTime;
 
-        clients[0].ReceiveTimerRpc(talkTimer, clients[0].ToMe);
-        clients[1].ReceiveTimerRpc(talkTimer,clients[1].ToMe);
 
         if (talkTimer <= 0f)
             EndTalk();
@@ -299,7 +304,7 @@ public class GameManager : NetworkBehaviour
     public void NotifyPresentationEnd(int playerIndex, GamePhase phase)
     {
         if (curPhase != phase) return;
-
+        isPresentationEnded[playerIndex] = true;
         switch (phase)
         {
             case GamePhase.RoundStart: BeginTalk(); break;

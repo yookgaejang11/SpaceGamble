@@ -8,6 +8,7 @@ public class GameClient : NetworkBehaviour
     public int foldLeft;
     public GamePhase curPhase;
     public bool mySelection;
+    public float curTime;
 
     public event Action<GamePhase> OnChangedPhase;//페이즈 변경시
     public event Action<int> OnRoundChanged;//라운드 변경시
@@ -35,7 +36,18 @@ public class GameClient : NetworkBehaviour
         myIndex = index;
     }
 
- 
+    private void Update()
+    {
+        if (!IsOwner) return;
+        if(curPhase == GamePhase.talkTime)
+        {
+            curTime -= Time.deltaTime;
+            OnTimeChanged?.Invoke(Mathf.Max(0f, curTime));
+        }
+    }
+
+
+    
 
     [Rpc(SendTo.SpecifiedInParams)]
     public void ReceiveMyFoldLeftRpc(int foldLeft, RpcParams parms)
@@ -70,6 +82,7 @@ public class GameClient : NetworkBehaviour
     public void ReceiveTimerRpc(float remainTime, RpcParams parms)
     {
         OnTimeChanged?.Invoke(remainTime);
+        curTime = remainTime;
     }
 
     [Rpc(SendTo.SpecifiedInParams)]
@@ -114,7 +127,7 @@ public class GameClient : NetworkBehaviour
     [Rpc(SendTo.Server)]
     void RequestToGoRpc()
     {
-        gameManager.RequestFold(myIndex);
+        gameManager.RequestGo(myIndex);
     }
 
 
