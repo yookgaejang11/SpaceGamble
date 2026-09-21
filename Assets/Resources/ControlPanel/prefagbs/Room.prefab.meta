@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: b60ecddcb4c5e2640811f96d6850cd2e
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 309054
+  packageName: Stylized Control Panel
+  packageVersion: 1.0
+  assetPath: Assets/ControlPanel/prefagbs/Room.prefab
+  uploadId: 730231
