@@ -305,11 +305,14 @@ public class GameManager : NetworkBehaviour
     {
         if (curPhase != phase) return;
         isPresentationEnded[playerIndex] = true;
-        switch (phase)
+        if (isPresentationEnded[0] && isPresentationEnded[1])
         {
-            case GamePhase.RoundStart: BeginTalk(); break;
-            case GamePhase.Open: AfterOpen(); break;
-            case GamePhase.Result: AfterResult(); break;
+            switch (phase)
+            {
+                case GamePhase.RoundStart: BeginTalk(); break;
+                case GamePhase.Open: AfterOpen(); break;
+                case GamePhase.Result: AfterResult(); break;
+            }
         }
     }
 

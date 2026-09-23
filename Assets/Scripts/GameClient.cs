@@ -42,6 +42,7 @@ public class GameClient : NetworkBehaviour
         if(curPhase == GamePhase.talkTime)
         {
             curTime -= Time.deltaTime;
+            curTime = Mathf.Max(curTime, 0);
             OnTimeChanged?.Invoke(Mathf.Max(0f, curTime));
         }
     }
@@ -173,6 +174,8 @@ public class GameClient : NetworkBehaviour
         GUILayout.Label($"상대 카드: {opponentCard}");
         GUILayout.Label($"P{myIndex}  phase: {curPhase}");
         GUILayout.Label($"fold left: {foldLeft}");
+        GUILayout.Label($"talkTime:{curTime}");
+        if (GUILayout.Button("GO")) RequestGo();
         if (GUILayout.Button("Fold")) RequestFold();
         if (GUILayout.Button("Press")) RequestPress();
         if (GUILayout.Button("연출끝")) EndPresentation();
