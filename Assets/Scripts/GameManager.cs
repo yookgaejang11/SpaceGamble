@@ -200,7 +200,9 @@ public class GameManager : NetworkBehaviour
 
         isPresentationEnded[0] = false;
         isPresentationEnded[1] = false;
-
+        CancelInvoke(nameof(AfterPresentationEnd));
+        if(phase == GamePhase.RoundStart || phase == GamePhase.Open || phase == GamePhase.Result)
+            Invoke(nameof(AfterPresentationEnd),15);
     }
 
     void BeginTalk()
@@ -305,14 +307,24 @@ public class GameManager : NetworkBehaviour
     {
         if (curPhase != phase) return;
         isPresentationEnded[playerIndex] = true;
+
+
+     
+
         if (isPresentationEnded[0] && isPresentationEnded[1])
         {
-            switch (phase)
-            {
-                case GamePhase.RoundStart: BeginTalk(); break;
-                case GamePhase.Open: AfterOpen(); break;
-                case GamePhase.Result: AfterResult(); break;
-            }
+            AfterPresentationEnd(phase);
+        }
+    }
+
+    void AfterPresentationEnd(GamePhase phase)
+    {
+      
+        switch (phase)
+        {
+            case GamePhase.RoundStart: BeginTalk(); break;
+            case GamePhase.Open: AfterOpen(); break;
+            case GamePhase.Result: AfterResult(); break;
         }
     }
 
