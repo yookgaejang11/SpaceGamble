@@ -51,6 +51,7 @@ public class RelayManager : MonoBehaviour
 
     public async Task<bool> JoinRoom(string joinCode)
     {
+
         await InitAsync();
 
         var allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);

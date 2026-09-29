@@ -9,7 +9,8 @@ public class GameClient : NetworkBehaviour
     public GamePhase curPhase;
     public bool mySelection;
     public float curTime;
-
+    public bool isReady;
+    public event Action<bool> OnReadyPressed;// 레디 눌렀는지(임시 키 : f4)
     public event Action<GamePhase> OnChangedPhase;//페이즈 변경시
     public event Action<int> OnRoundChanged;//라운드 변경시
     public event Action<int> OnNumberSelected;
@@ -22,6 +23,8 @@ public class GameClient : NetworkBehaviour
     public event Action<int> OnMyFoldLeftChanged;//폴드 값
     public event Action<bool> OnMySelectionChanged;//go,fold 바뀜
     public int opponentCard; //숫자
+
+    
 
     public override void OnNetworkSpawn()
     {
@@ -45,6 +48,12 @@ public class GameClient : NetworkBehaviour
             curTime = Mathf.Max(curTime, 0);
             OnTimeChanged?.Invoke(Mathf.Max(0f, curTime));
         }
+
+        if(curPhase == GamePhase.waiting)
+        {
+            if(Input.GetKeyDown(KeyCode.F4))
+                RequestReady();
+        }
     }
 
 
@@ -63,6 +72,14 @@ public class GameClient : NetworkBehaviour
         curPhase = phase;
         OnChangedPhase?.Invoke(phase);
     }
+
+    [Rpc(SendTo.SpecifiedInParams)]
+    public void ReceiveReadyRpc(bool ready, RpcParams parms)
+    {
+        isReady = ready;
+        OnReadyPressed?.Invoke(isReady);
+    }
+
 
     [Rpc(SendTo.SpecifiedInParams)]
     public void ReceiveRoundRpc(int round, RpcParams parms)
@@ -131,6 +148,19 @@ public class GameClient : NetworkBehaviour
         gameManager.RequestGo(myIndex);
     }
 
+    public void RequestReady()
+    {
+        if (!IsOwner) return;
+        isReady = !isReady;
+        OnReadyPressed?.Invoke(isReady);
+        RequestReadyRpc();
+    }
+
+    [Rpc(SendTo.Server)]
+    void RequestReadyRpc()
+    {
+        gameManager.RequestReady(myIndex);
+    }
 
 
     public void RequestFold() 
@@ -173,6 +203,7 @@ public class GameClient : NetworkBehaviour
         GUILayout.BeginArea(new Rect(myIndex * 220, 0, 210, 300));
         GUILayout.Label($"상대 카드: {opponentCard}");
         GUILayout.Label($"P{myIndex}  phase: {curPhase}");
+        GUILayout.Label($"isReady: {isReady}");
         GUILayout.Label($"fold left: {foldLeft}");
         GUILayout.Label($"talkTime:{curTime}");
         if (GUILayout.Button("GO")) RequestGo();
