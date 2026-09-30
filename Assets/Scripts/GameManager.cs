@@ -144,10 +144,35 @@ public class GameManager : NetworkBehaviour
     {
         if (!IsServer) return;
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
-       
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
         foreach (var id in NetworkManager.Singleton.ConnectedClientsIds)
             OnClientConnected(id);
     }
+
+    void OnClientDisconnected(ulong clientId)
+    {
+        if(IsServer)
+        {
+            if (clients[0] != null && clients[0].OwnerClientId == clientId)
+            {
+                clients[0] = null; //0번은 호스트라 형식상에 불과
+            }
+            if(clients[1] != null && clients[1].OwnerClientId == clientId)
+            {
+                clients[1] = null;
+            }
+            CancelInvoke(nameof(AfterPresentationEnd));
+            session = null;
+            ChangePhase(GamePhase.waiting);
+            //LOBBU UI 불러오고 게임 UI 끄기 및 연결 끊김 안내   
+        }
+        else
+        {
+            //LOBBY 복귀 & 방장 아닌 사람은 방폭 메시지 띄우기 & 인게임 UI 비활성화 후 로비 UI 활성화
+            NetworkManager.Singleton.Shutdown();
+        }
+    }
+
 
     void OnClientConnected(ulong clientId)
     {

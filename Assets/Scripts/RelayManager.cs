@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -14,6 +15,11 @@ public class RelayManager : MonoBehaviour
 
     const int MaxConnections = 1;
     const string ConnectionType = "dtls";
+
+    public event Action<string> OnRoomCodeSpawned;
+    public event Action<bool> OnRoomConnectSuccessed;
+    public event Action<string> OnRoomConnectFailed;
+    public event Action<string> OnRoonQuited;
 
     private void Awake()
     {
@@ -60,5 +66,10 @@ public class RelayManager : MonoBehaviour
 
         return NetworkManager.Singleton.StartClient();
          
+    }
+
+    public void LeaveRoom()
+    {
+
     }
 }
