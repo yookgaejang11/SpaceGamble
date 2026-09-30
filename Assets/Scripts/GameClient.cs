@@ -49,7 +49,7 @@ public class GameClient : NetworkBehaviour
             OnTimeChanged?.Invoke(Mathf.Max(0f, curTime));
         }
 
-        if(curPhase == GamePhase.waiting)
+        if(curPhase == GamePhase.waiting && curPhase == GamePhase.GameOver)
         {
             if(Input.GetKeyDown(KeyCode.F4))
                 RequestReady();

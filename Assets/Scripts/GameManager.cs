@@ -144,7 +144,7 @@ public class GameManager : NetworkBehaviour
     {
         if (!IsServer) return;
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
-
+       
         foreach (var id in NetworkManager.Singleton.ConnectedClientsIds)
             OnClientConnected(id);
     }
@@ -166,6 +166,8 @@ public class GameManager : NetworkBehaviour
         clients[index] = client;
         client.myIndex = index;
         client.SetIndexRpc(index, client.ToMe);
+
+        ChangePhase(GamePhase.waiting);
 
     }
 
@@ -300,7 +302,7 @@ public class GameManager : NetworkBehaviour
 
     public void RequestReady(int playerIndex)
     {
-        if (curPhase != GamePhase.waiting && curPhase != GamePhase.GameOver) return;
+        if (curPhase != GamePhase.waiting || curPhase != GamePhase.GameOver) return;
         isReady[playerIndex] = !isReady[playerIndex];
         Debug.Log(isReady[0]  + " " + isReady[1]);
         if (clients[0] != null)
@@ -359,6 +361,7 @@ public class GameManager : NetworkBehaviour
 
     void OnGUI()
     {
+        if (!IsServer) return;
         if (curPhase == GamePhase.waiting) return;
         GUILayout.BeginArea(new Rect(460, 0, 250, 300));
         GUILayout.Label("=== SERVER ===");
