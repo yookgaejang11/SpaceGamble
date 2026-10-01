@@ -11,12 +11,13 @@ public enum Result
 }
 public enum GamePhase
 {
+    waiting,     //플레이어 기다리는중
     RoundStart,   // 카드 배정, 상대 숫자 공개
     talkTime,   // 대화 타이머, Fold 선택
     Open,       // Fold 여부 공개, 누를 사람 공개
     Press,        // 버튼 누르기 대기
     Result,       // 사고 여부, 확률 변동 공개
-    GameOver      // 승패 화면
+    GameOver,   // 승패 화면
 }
 
 [Serializable]
@@ -122,6 +123,7 @@ public class GameManager : NetworkBehaviour
     public GamePer gameRule;
     public GameClient[] clients = new GameClient[2];
     public bool[] isPresentationEnded = new bool[2];
+    public bool[] isReady = new bool[2];
     GameSession session;
     public GamePhase curPhase;
     float talkTimer;
@@ -141,12 +143,34 @@ public class GameManager : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         if (!IsServer) return;
-
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
-
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
         foreach (var id in NetworkManager.Singleton.ConnectedClientsIds)
             OnClientConnected(id);
     }
+
+    void OnClientDisconnected(ulong clientId)
+    {
+        if(IsServer)
+        {
+            if (clients[0] != null && clients[0].OwnerClientId == clientId)
+            {
+                clients[0] = null; //0번은 호스트라 형식상에 불과
+            }
+            if(clients[1] != null && clients[1].OwnerClientId == clientId)
+            {
+                clients[1] = null;
+            }
+            CancelInvoke(nameof(AfterPresentationEnd));
+            session = null;
+            ChangePhase(GamePhase.waiting); 
+        }
+        else
+        {
+            NetworkManager.Singleton.Shutdown();
+        }
+    }
+
 
     void OnClientConnected(ulong clientId)
     {
@@ -166,12 +190,13 @@ public class GameManager : NetworkBehaviour
         client.myIndex = index;
         client.SetIndexRpc(index, client.ToMe);
 
-        if (clients[0] != null && clients[1] != null)
-            StartGame();
+        ChangePhase(GamePhase.waiting);
+
     }
 
     public void StartGame()
     {
+        Debug.Log("adsf");
         session = new GameSession();
         session.curOutPer = gameRule.basicPer;
         BeginRound();
@@ -194,15 +219,28 @@ public class GameManager : NetworkBehaviour
 
     public void ChangePhase(GamePhase phase)
     {
+        isReady[0] = false;
+        isReady[1] = false;
+        
         curPhase = phase;
-        clients[0].ReceivePhaseRpc(phase, clients[0].ToMe);
-        clients[1].ReceivePhaseRpc(phase, clients[1].ToMe);
 
+        if (clients[0] != null)
+        {
+            if (phase == GamePhase.waiting || phase == GamePhase.GameOver)
+                clients[0].ReceiveReadyRpc(isReady[0], clients[0].ToMe);
+            clients[0].ReceivePhaseRpc(phase, clients[0].ToMe);
+        }
+        if (clients[1] != null)
+        {
+            if (phase == GamePhase.waiting || phase == GamePhase.GameOver)
+                clients[1].ReceiveReadyRpc(isReady[1], clients[1].ToMe);
+            clients[1].ReceivePhaseRpc(phase, clients[1].ToMe);
+        }
         isPresentationEnded[0] = false;
         isPresentationEnded[1] = false;
         CancelInvoke(nameof(AfterPresentationEnd));
         if(phase == GamePhase.RoundStart || phase == GamePhase.Open || phase == GamePhase.Result)
-            Invoke(nameof(AfterPresentationEnd),15);
+            Invoke(nameof(AfterPresentationEnd),gameRule.cutSceneTime);
     }
 
     void BeginTalk()
@@ -285,6 +323,22 @@ public class GameManager : NetworkBehaviour
         session.isFold[playerIndex] = session.CanFold(playerIndex);//시간 끝나고 폴드 감소 되게(대화하는동안 언제든지 바꿀 수 있게끔)
     }
 
+    public void RequestReady(int playerIndex)
+    {
+        if (curPhase != GamePhase.waiting && curPhase != GamePhase.GameOver) return;
+        isReady[playerIndex] = !isReady[playerIndex];
+        Debug.Log(isReady[0]  + " " + isReady[1]);
+        if (clients[0] != null)
+            clients[0].ReceiveReadyRpc(isReady[0], clients[0].ToMe);
+        if (clients[1] != null)
+            clients[1].ReceiveReadyRpc(isReady[1], clients[1].ToMe);
+        if (isReady[0] && isReady[1])
+        {
+            StartGame();
+        }
+    }
+    
+
     public void RequestPress(int playerIndex)
     {
         Debug.Log($"도착: {playerIndex}, phase={curPhase}, presser={session.pressedPlayer}");
@@ -313,14 +367,14 @@ public class GameManager : NetworkBehaviour
 
         if (isPresentationEnded[0] && isPresentationEnded[1])
         {
-            AfterPresentationEnd(phase);
+            AfterPresentationEnd();
         }
     }
 
-    void AfterPresentationEnd(GamePhase phase)
+    void AfterPresentationEnd()
     {
       
-        switch (phase)
+        switch (curPhase)
         {
             case GamePhase.RoundStart: BeginTalk(); break;
             case GamePhase.Open: AfterOpen(); break;
@@ -330,9 +384,11 @@ public class GameManager : NetworkBehaviour
 
     void OnGUI()
     {
-        if (session == null) return;
+        if (!IsServer) return;
+        if (curPhase == GamePhase.waiting) return;
         GUILayout.BeginArea(new Rect(460, 0, 250, 300));
         GUILayout.Label("=== SERVER ===");
+        GUILayout.Label($"isReady : {isReady[0]} {isReady[1]}");
         GUILayout.Label($"round {session.curRound}  phase {curPhase}");
         GUILayout.Label($"cards: {session.cardNums[0]} / {session.cardNums[1]}");
         GUILayout.Label($"per: {session.curOutPer}%");
