@@ -12,14 +12,14 @@ public class RelayManager : MonoBehaviour
 {
 
     public static RelayManager Instance { get; private set; }
-
+    public bool isInRoom;
     const int MaxConnections = 1;
     const string ConnectionType = "dtls";
 
     public event Action<string> OnRoomCodeSpawned;
-    public event Action<bool> OnRoomConnectSuccessed;
+    public event Action OnRoomConnectSuccessed;
     public event Action<string> OnRoomConnectFailed;
-    public event Action<string> OnRoonQuited;
+    public event Action<string> OnRoomQuited;
 
     private void Awake()
     {
@@ -41,35 +41,85 @@ public class RelayManager : MonoBehaviour
 
     public async Task<string> CreateRoom()
     {
-        await InitAsync();
+        try
+        {
+            isInRoom = true;
+            await InitAsync();
 
-        var allocation = await RelayService.Instance.CreateAllocationAsync(MaxConnections);
+            var allocation = await RelayService.Instance.CreateAllocationAsync(MaxConnections);
 
-        NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(AllocationUtils.ToRelayServerData(allocation, ConnectionType));
+            NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(AllocationUtils.ToRelayServerData(allocation, ConnectionType));
 
-        string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+            string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
 
-        NetworkManager.Singleton.StartHost();
+            NetworkManager.Singleton.StartHost();
 
-        return joinCode;
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnDisconnected;
+
+            OnRoomCodeSpawned?.Invoke(joinCode);
+            OnRoomConnectSuccessed?.Invoke();
+            return joinCode;
+        }
+        catch(Exception e)
+        {
+            Debug.Log(e);
+            LeaveRoom("방 만들기에 실패했습니다.");
+            OnRoomConnectFailed?.Invoke("방만들기에 실패했습니다!");
+            return null;
+        }
 
     }
 
     public async Task<bool> JoinRoom(string joinCode)
     {
+        try
+        {
+            isInRoom = true;
 
-        await InitAsync();
+            await InitAsync();
 
-        var allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
+            var allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
 
-        NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(AllocationUtils.ToRelayServerData(allocation, ConnectionType));
-
-        return NetworkManager.Singleton.StartClient();
+            NetworkManager.Singleton.GetComponent<UnityTransport>().SetRelayServerData(AllocationUtils.ToRelayServerData(allocation, ConnectionType));
+            NetworkManager.Singleton.OnClientDisconnectCallback += OnDisconnected;
+            bool clientStarted = NetworkManager.Singleton.StartClient();
+            OnRoomConnectSuccessed?.Invoke();
+            return clientStarted;
+        }
+        catch(Exception e)
+        {
+            Debug.Log(e);
+            LeaveRoom("가입에 실패했습니다");
+            OnRoomConnectFailed?.Invoke("가입에 실패했습니다");
+            return false;
+        }
          
     }
 
-    public void LeaveRoom()
+    public void LeaveRoom(string reason)
     {
+        if (!isInRoom) return;
+        isInRoom = false;
+        
+        OnRoomQuited?.Invoke(reason);
 
+        if (NetworkManager.Singleton == null) return;
+        NetworkManager.Singleton.OnClientDisconnectCallback -= OnDisconnected;
+        Invoke(nameof(DoShutdown), 0f);
+
+        
+    }
+
+    void OnDisconnected(ulong clientId)
+    {
+        if (NetworkManager.Singleton.IsServer) return;
+
+            LeaveRoom("호스트와의 연결이 끊어졌습니다.");
+    }
+
+    void DoShutdown()
+    {
+        if (NetworkManager.Singleton != null)
+            NetworkManager.Singleton.Shutdown();
     }
 }

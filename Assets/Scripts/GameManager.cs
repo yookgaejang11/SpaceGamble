@@ -163,12 +163,10 @@ public class GameManager : NetworkBehaviour
             }
             CancelInvoke(nameof(AfterPresentationEnd));
             session = null;
-            ChangePhase(GamePhase.waiting);
-            //LOBBU UI 불러오고 게임 UI 끄기 및 연결 끊김 안내   
+            ChangePhase(GamePhase.waiting); 
         }
         else
         {
-            //LOBBY 복귀 & 방장 아닌 사람은 방폭 메시지 띄우기 & 인게임 UI 비활성화 후 로비 UI 활성화
             NetworkManager.Singleton.Shutdown();
         }
     }
@@ -327,7 +325,7 @@ public class GameManager : NetworkBehaviour
 
     public void RequestReady(int playerIndex)
     {
-        if (curPhase != GamePhase.waiting || curPhase != GamePhase.GameOver) return;
+        if (curPhase != GamePhase.waiting && curPhase != GamePhase.GameOver) return;
         isReady[playerIndex] = !isReady[playerIndex];
         Debug.Log(isReady[0]  + " " + isReady[1]);
         if (clients[0] != null)
