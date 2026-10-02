@@ -24,6 +24,7 @@ public class RelayManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+
     }
 
     async Task InitAsync()

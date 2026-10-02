@@ -4,7 +4,7 @@ using Unity.Netcode;
 public class GameClient : NetworkBehaviour
 {
     public GameManager gameManager;
-    public int myIndex;
+    public NetworkVariable<int> myIndex;
     public int foldLeft;
     public GamePhase curPhase;
     public bool mySelection;
@@ -24,7 +24,11 @@ public class GameClient : NetworkBehaviour
     public event Action<bool> OnMySelectionChanged;//go,fold 바뀜
     public int opponentCard; //숫자
 
-    
+    private void Start()
+    {
+        myIndex.OnValueChanged += HandleIndexChanged;
+    }
+
 
     public override void OnNetworkSpawn()
     {
@@ -36,8 +40,21 @@ public class GameClient : NetworkBehaviour
     [Rpc(SendTo.SpecifiedInParams)]
     public void SetIndexRpc(int index, RpcParams parms)
     {
-        myIndex = index;
+        myIndex.Value = index;
     }
+    
+    void HandleIndexChanged(int before, int after)//OnValueChanged는 인자가 2개 필요함
+    {
+        MoveSeat();
+        
+    }
+
+    public void MoveSeat()
+    {
+        //의자로 이동
+    }
+
+
 
     private void Update()
     {
@@ -145,7 +162,7 @@ public class GameClient : NetworkBehaviour
     [Rpc(SendTo.Server)]
     void RequestToGoRpc()
     {
-        gameManager.RequestGo(myIndex);
+        gameManager.RequestGo(myIndex.Value);
     }
 
     public void RequestReady()
@@ -159,7 +176,7 @@ public class GameClient : NetworkBehaviour
     [Rpc(SendTo.Server)]
     void RequestReadyRpc()
     {
-        gameManager.RequestReady(myIndex);
+        gameManager.RequestReady(myIndex.Value);
     }
 
 
@@ -175,7 +192,7 @@ public class GameClient : NetworkBehaviour
     [Rpc(SendTo.Server)]
     void RequestToFoldRpc()
     {
-        gameManager.RequestFold(myIndex);
+        gameManager.RequestFold(myIndex.Value);
     }
 
     public void RequestPress()
@@ -185,7 +202,7 @@ public class GameClient : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server)]
-    void RequestToPressRpc() { gameManager.RequestPress(myIndex); }
+    void RequestToPressRpc() { gameManager.RequestPress(myIndex.Value); }
 
 
     public void EndPresentation()
@@ -195,12 +212,12 @@ public class GameClient : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server)]
-    void EndPresentationRpc(GamePhase phase) { gameManager.NotifyPresentationEnd(myIndex, phase); }
+    void EndPresentationRpc(GamePhase phase) { gameManager.NotifyPresentationEnd(myIndex.Value, phase); }
 
     void OnGUI()
     {
         if (!IsOwner) return;
-        GUILayout.BeginArea(new Rect(myIndex * 220, 0, 210, 300));
+        GUILayout.BeginArea(new Rect(myIndex.Value * 220, 0, 210, 300));
         GUILayout.Label($"상대 카드: {opponentCard}");
         GUILayout.Label($"P{myIndex}  phase: {curPhase}");
         GUILayout.Label($"isReady: {isReady}");

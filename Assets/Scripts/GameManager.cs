@@ -145,6 +145,8 @@ public class GameManager : NetworkBehaviour
         if (!IsServer) return;
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+        foreach (GameClient var in clients)
+            var.MoveSeat();
         foreach (var id in NetworkManager.Singleton.ConnectedClientsIds)
             OnClientConnected(id);
     }
@@ -187,8 +189,7 @@ public class GameManager : NetworkBehaviour
 
         int index = (clients[0] == null) ? 0 : 1;
         clients[index] = client;
-        client.myIndex = index;
-        client.SetIndexRpc(index, client.ToMe);
+        client.myIndex.Value = index;
 
         ChangePhase(GamePhase.waiting);
 
