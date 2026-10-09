@@ -6,7 +6,7 @@ using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Relay;
 using UnityEngine;
-
+using Unity.Services.Relay.Models;
 public class RelayManager : MonoBehaviour
 {
     public static RelayManager Instance { get; private set; }
