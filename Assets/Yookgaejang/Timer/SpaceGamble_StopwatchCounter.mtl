@@ -1,0 +1,127 @@
+newmtl MAT_MainCase
+Ka 0.02 0.03 0.04
+Kd 0.2353 0.2941 0.3333
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2
+
+newmtl MAT_RearCover
+Ka 0.02 0.03 0.04
+Kd 0.1059 0.1451 0.1725
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2
+
+newmtl MAT_FrontBezel
+Ka 0.02 0.03 0.04
+Kd 0.4902 0.5882 0.6275
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2
+
+newmtl MAT_DisplayGlass
+Ka 0.02 0.03 0.04
+Kd 0.0549 0.1176 0.1608
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2
+
+newmtl MAT_BezelFastener_1
+Ka 0.02 0.03 0.04
+Kd 0.5647 0.6392 0.6667
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2
+
+newmtl MAT_FastenerSlot_1
+Ka 0.02 0.03 0.04
+Kd 0.0980 0.1608 0.1922
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2
+
+newmtl MAT_BezelFastener_2
+Ka 0.02 0.03 0.04
+Kd 0.5647 0.6392 0.6667
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2
+
+newmtl MAT_FastenerSlot_2
+Ka 0.02 0.03 0.04
+Kd 0.0980 0.1608 0.1922
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2
+
+newmtl MAT_BezelFastener_3
+Ka 0.02 0.03 0.04
+Kd 0.5647 0.6392 0.6667
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2
+
+newmtl MAT_FastenerSlot_3
+Ka 0.02 0.03 0.04
+Kd 0.0980 0.1608 0.1922
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2
+
+newmtl MAT_BezelFastener_4
+Ka 0.02 0.03 0.04
+Kd 0.5647 0.6392 0.6667
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2
+
+newmtl MAT_FastenerSlot_4
+Ka 0.02 0.03 0.04
+Kd 0.0980 0.1608 0.1922
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2
+
+newmtl MAT_StopwatchStem
+Ka 0.02 0.03 0.04
+Kd 0.2902 0.3765 0.4235
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2
+
+newmtl MAT_StopwatchPusher
+Ka 0.02 0.03 0.04
+Kd 0.5569 0.6667 0.7059
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2
+
+newmtl MAT_TopControl_Left
+Ka 0.02 0.03 0.04
+Kd 0.2902 0.3765 0.4235
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2
+
+newmtl MAT_TopControl_Right
+Ka 0.02 0.03 0.04
+Kd 0.2902 0.3765 0.4235
+d 1.0000
+Ks 0.20 0.22 0.24
+Ns 80
+illum 2

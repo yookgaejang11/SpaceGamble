@@ -1,0 +1,65 @@
+newmtl MAT_ProjectorHousing
+Ka 0.03 0.04 0.05
+Kd 0.1255 0.1686 0.2118
+Ks 0.12 0.12 0.12
+Ns 70
+d 1.0000
+illum 2
+
+newmtl MAT_OuterEmitterRing
+Ka 0.03 0.04 0.05
+Kd 0.2745 0.4000 0.4706
+Ks 0.12 0.12 0.12
+Ns 70
+d 1.0000
+illum 2
+
+newmtl MAT_InnerEmitterRing
+Ka 0.03 0.04 0.05
+Kd 0.3529 0.6275 0.7255
+Ks 0.12 0.12 0.12
+Ns 70
+d 1.0000
+illum 2
+
+newmtl MAT_EmitterDiffuser
+Ka 0.03 0.04 0.05
+Kd 0.3529 0.6275 0.7255
+Ks 0.12 0.12 0.12
+Ns 70
+d 1.0000
+illum 2
+
+newmtl MAT_InvertedPyramidShell
+Ka 0.03 0.04 0.05
+Kd 0.5294 0.8235 0.9020
+Ks 0.12 0.12 0.12
+Ns 70
+d 0.1882
+illum 2
+
+newmtl MAT_PyramidFrame
+Ka 0.03 0.04 0.05
+Kd 0.4706 0.8039 0.9020
+Ks 0.12 0.12 0.12
+Ns 70
+d 0.6471
+illum 2
+
+newmtl MAT_ContentPlane_Front
+Ka 0.03 0.04 0.05
+Kd 1.0000 1.0000 1.0000
+Ks 0.12 0.12 0.12
+Ns 70
+d 1.0000
+illum 2
+map_Kd SpaceGamble_HoloSampleContent.png
+
+newmtl MAT_ContentPlane_Back
+Ka 0.03 0.04 0.05
+Kd 1.0000 1.0000 1.0000
+Ks 0.12 0.12 0.12
+Ns 70
+d 1.0000
+illum 2
+map_Kd SpaceGamble_HoloSampleContent.png
