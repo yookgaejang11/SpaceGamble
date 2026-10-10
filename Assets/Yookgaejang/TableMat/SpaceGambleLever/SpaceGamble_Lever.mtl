@@ -1,0 +1,135 @@
+newmtl MAT_BaseLower
+Ka 0.05 0.05 0.05
+Kd 0.0902 0.1059 0.1255
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_BaseHousing
+Ka 0.05 0.05 0.05
+Kd 0.1412 0.1608 0.1882
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_TopInset
+Ka 0.05 0.05 0.05
+Kd 0.2627 0.2941 0.3294
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_HingeCheek_L
+Ka 0.05 0.05 0.05
+Kd 0.0902 0.1059 0.1255
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_HingeCheek_R
+Ka 0.05 0.05 0.05
+Kd 0.0902 0.1059 0.1255
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_InsetStripe
+Ka 0.05 0.05 0.05
+Kd 0.3569 0.3961 0.4353
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_PivotAxle
+Ka 0.05 0.05 0.05
+Kd 0.3569 0.3961 0.4353
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_PivotCap_L
+Ka 0.05 0.05 0.05
+Kd 0.1137 0.1294 0.1490
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_PivotCap_R
+Ka 0.05 0.05 0.05
+Kd 0.1137 0.1294 0.1490
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_LeverStem
+Ka 0.05 0.05 0.05
+Kd 0.1922 0.2196 0.2510
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_StemLowerCollar
+Ka 0.05 0.05 0.05
+Kd 0.3569 0.3961 0.4353
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_StemUpperCollar
+Ka 0.05 0.05 0.05
+Kd 0.3569 0.3961 0.4353
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_RedGripCore
+Ka 0.05 0.05 0.05
+Kd 0.8549 0.1373 0.1137
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_RedGripEnd_L
+Ka 0.05 0.05 0.05
+Kd 0.8549 0.1373 0.1137
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_RedGripEnd_R
+Ka 0.05 0.05 0.05
+Kd 0.8549 0.1373 0.1137
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_GripEndMark_L
+Ka 0.05 0.05 0.05
+Kd 0.5922 0.0980 0.0863
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
+
+newmtl MAT_GripEndMark_R
+Ka 0.05 0.05 0.05
+Kd 0.5922 0.0980 0.0863
+Ks 0.15 0.15 0.15
+Ns 80
+d 1.0
+illum 2
