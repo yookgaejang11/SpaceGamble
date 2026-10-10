@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Resources/Modular_SciFi_Pack (146 Objects, LowPoly).meta
+guid: 74d5302c5e414d64d9f6fa24778f07e2
+========
 guid: 0957529553012ad43adbabecb54e617e
+>>>>>>>> main:Assets/SO.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}
