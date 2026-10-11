@@ -40,6 +40,8 @@ public class RelayManager : MonoBehaviour
     {
         try
         {
+            if (isInRoom) return null;
+            if (NetworkManager.Singleton.IsListening) return null;
             isInRoom = true;
             await InitAsync();
 
@@ -64,6 +66,8 @@ public class RelayManager : MonoBehaviour
             Debug.LogError($"[Relay] CreateRoom 실패: {e}");
             LeaveRoom(null);                                    // 조용히 정리만
             OnRoomConnectFailed?.Invoke("방 만들기에 실패했습니다.");
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
             return null;
         }
     }
@@ -72,6 +76,8 @@ public class RelayManager : MonoBehaviour
     {
         try
         {
+            if (isInRoom) return false;
+            if (NetworkManager.Singleton.IsListening) return false;
             isInRoom = true;
             await InitAsync();
 
