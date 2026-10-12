@@ -20,6 +20,8 @@ using UnityEngine;
 /// </summary>
 public class HeadLookSync : NetworkBehaviour
 {
+    Animator animator;
+    Quaternion headBaseLocal;
     [Header("참조")]
     [Tooltip("모델의 머리 본")]
     public Transform head;
@@ -55,7 +57,8 @@ public class HeadLookSync : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         rule = GameManager.Instance != null ? GameManager.Instance.gameRule : null;
-
+        animator = GetComponentInChildren<Animator>();
+        if (head != null) headBaseLocal = head.localRotation;
         // 내 것이 아닌 오브젝트의 카메라/오디오는 꺼야 한다
         if (!IsOwner)
         {
@@ -120,7 +123,8 @@ public class HeadLookSync : NetworkBehaviour
             camRig.localRotation = Quaternion.Euler(-shownLook.y, shownLook.x, 0f);
 
         if (head == null) return;
-
+        //if (animator == null || !animator.isActiveAndEnabled)
+            head.localRotation = headBaseLocal;
         // 애니메이션이 만든 머리 포즈 위에, 캐릭터 기준 축으로 회전을 더한다.
         // (본의 로컬 축 방향은 모델마다 달라서 localRotation 대입은 쓰면 안 된다)
         head.rotation =

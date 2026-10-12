@@ -6,6 +6,8 @@ public class GameClient : NetworkBehaviour
 {
     // ────────────────────────── 상태 (UI가 읽어도 되는 값) ──────────────────────────
 
+    public static GameClient Local;
+    public static event Action<GameClient> OnLocalClientReady;
     public NetworkVariable<int> myIndex = new NetworkVariable<int>();
 
     public int foldLeft;            // 내 남은 Fold 횟수
@@ -47,11 +49,17 @@ public class GameClient : NetworkBehaviour
 
         // 스폰 시점에 이미 값이 와 있을 수 있으므로 한 번 적용
         MoveSeat();
+        if (IsOwner)
+        {
+            Local = this;
+            OnLocalClientReady?.Invoke(this);
+        }
     }
 
     public override void OnNetworkDespawn()
     {
         myIndex.OnValueChanged -= HandleIndexChanged;
+        if (Local == this) Local = null;
     }
 
     void HandleIndexChanged(int before, int after)
