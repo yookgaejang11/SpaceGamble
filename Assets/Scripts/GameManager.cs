@@ -151,7 +151,7 @@ public class GameManager : NetworkBehaviour
 
     [Header("규칙")]
     public GamePer SOGameRule;
-    public GamePer gameRule;
+    [HideInInspector] public GamePer gameRule;
 
     [Header("좌석 (0번 / 1번)")]
     public Transform[] seats = new Transform[2];

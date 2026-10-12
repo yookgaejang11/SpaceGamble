@@ -23,3 +23,8 @@ MonoBehaviour:
   talkingTime: 1
   cutSceneTime: 10
   basicPer: 10
+  overloadMul: 1.5
+  bothOverloadMul: 2
+  lookSendRate: 15
+  lookYawLimit: 70
+  lookPitchLimit: 60
