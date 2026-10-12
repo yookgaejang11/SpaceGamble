@@ -216,6 +216,7 @@ public class GameManager : NetworkBehaviour
         int index = (clients[0] == null) ? 0 : 1;
         clients[index] = client;
         client.myIndex.Value = index;
+        BroadcastPresence();
 
         ChangePhase(GamePhase.waiting);
     }
@@ -231,6 +232,7 @@ public class GameManager : NetworkBehaviour
 
         CancelInvoke(nameof(AfterPresentationEnd));
         session = null;
+        BroadcastPresence();
         ChangePhase(GamePhase.waiting);
     }
 
@@ -274,7 +276,10 @@ public class GameManager : NetworkBehaviour
             if (clients[i] == null) continue;
 
             if (readyPhase)
-                clients[i].ReceiveReadyRpc(false, clients[i].ToMe);
+            {
+                clients[0].ReceiveReadyRpc(isReady[0], isReady[1], clients[0].ToMe);
+                clients[1].ReceiveReadyRpc(isReady[1], isReady[0], clients[1].ToMe);
+            }
 
             clients[i].ReceivePhaseRpc(phase, clients[i].ToMe);
         }
@@ -394,8 +399,9 @@ public class GameManager : NetworkBehaviour
 
         isReady[playerIndex] = !isReady[playerIndex];
 
-        clients[0].ReceiveReadyRpc(isReady[0], clients[0].ToMe);
-        clients[1].ReceiveReadyRpc(isReady[1], clients[1].ToMe);
+
+        clients[0].ReceiveReadyRpc(isReady[0], isReady[1], clients[0].ToMe);
+        clients[1].ReceiveReadyRpc(isReady[1], isReady[0], clients[1].ToMe);
 
         if (isReady[0] && isReady[1])
             StartGame();
@@ -445,7 +451,13 @@ public class GameManager : NetworkBehaviour
         }
     }
 
-
+    void BroadcastPresence()
+    {
+        if (clients[0] != null)
+            clients[0].ReceiveOpponentPresentRpc(clients[1] != null, clients[0].ToMe);
+        if (clients[1] != null)
+            clients[1].ReceiveOpponentPresentRpc(clients[0] != null, clients[1].ToMe);
+    }
     // ────────────────────────── 디버그 ──────────────────────────
 
     void OnGUI()
