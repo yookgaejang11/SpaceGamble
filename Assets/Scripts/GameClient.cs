@@ -21,6 +21,7 @@ public class GameClient : NetworkBehaviour
 
 
     // ────────────────────────── UI가 구독할 이벤트 ──────────────────────────
+    public static event Action<GameClient> OnLocalClientLost; //클라이언트 나감
     public event Action<bool> OnOpponentPresentChanged;     //상대 존재 여부
     public event Action<bool, bool> OnReadyChanged;   // 내 것, 상대 것
     public event Action<GamePhase> OnChangedPhase;          // 페이즈 변경
@@ -62,7 +63,11 @@ public class GameClient : NetworkBehaviour
     public override void OnNetworkDespawn()
     {
         myIndex.OnValueChanged -= HandleIndexChanged;
-        if (Local == this) Local = null;
+        if (Local == this)
+        {
+            Local = null;
+            OnLocalClientLost?.Invoke(this);   // 아직 파괴 전이라 UI가 정상적으로 구독 해제 가능
+        }
     }
 
     void HandleIndexChanged(int before, int after)

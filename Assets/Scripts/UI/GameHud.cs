@@ -1,165 +1,88 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// 화면 고정 HUD. 캔버스(Screen Space - Overlay)에 붙인다.
 ///
 /// 월드 표시면(홀로그램, 보드, 패널)으로 못 가는 것만 여기에 둔다.
-///   - 방 코드 (정확히 읽고 복사해야 하므로)
-///   - 버튼 (GO / FOLD / OVERLOAD / PRESS)
+///   - 방 코드 표시 + 키(기본 C)로 복사
 ///
-/// 버튼 대신 키 입력을 쓸 거면 버튼 부분은 지워도 된다.
+/// 커서가 잠겨 있는 1인칭이라 복사 버튼 대신 키를 쓴다.
+/// 선택 버튼은 SeatPanel, Press는 PressTarget, 나가기는 PauseMenu가 맡는다.
+/// GameClient를 구독할 필요가 없어서 ClientUIBase를 쓰지 않는다.
 /// </summary>
-public class GameHud : ClientUIBase
+public class GameHud : MonoBehaviour
 {
     [Header("방 코드")]
     public GameObject roomCodeGroup;
     public TextMeshProUGUI roomCodeText;
-    public Button copyButton;
 
-    [Header("버튼")]
-    public Button goButton;
-    public Button foldButton;
-    public Button overloadButton;
-    public Button pressButton;
+    [Header("복사 키")]
+    public KeyCode copyKey = KeyCode.C;
+    [Tooltip("키 안내 / 복사 완료 문구를 띄울 텍스트. 없으면 비워두기")]
+    public TextMeshProUGUI hintText;
+    public string hintMessage = "[C] COPY";
+    public string copiedMessage = "COPIED!";
+    public float copiedShowTime = 1.5f;
 
-    [Header("선택 강조 (없으면 비워두기)")]
-    public Image goHighlight;
-    public Image foldHighlight;
-    public Image overloadHighlight;
+    float copiedUntil;
 
 
-    protected override void OnEnable()
+    void OnEnable()
     {
-        base.OnEnable();
-
-        if (goButton != null) goButton.onClick.AddListener(OnGo);
-        if (foldButton != null) foldButton.onClick.AddListener(OnFold);
-        if (overloadButton != null) overloadButton.onClick.AddListener(OnOverload);
-        if (pressButton != null) pressButton.onClick.AddListener(OnPress);
-        if (copyButton != null) copyButton.onClick.AddListener(CopyCode);
-
         if (RelayManager.Instance != null)
             RelayManager.Instance.OnRoomCodeSpawned += HandleRoomCode;
 
         ShowRoomCode();
     }
 
-    protected override void OnDisable()
+    void OnDisable()
     {
-        base.OnDisable();
-
-        if (goButton != null) goButton.onClick.RemoveListener(OnGo);
-        if (foldButton != null) foldButton.onClick.RemoveListener(OnFold);
-        if (overloadButton != null) overloadButton.onClick.RemoveListener(OnOverload);
-        if (pressButton != null) pressButton.onClick.RemoveListener(OnPress);
-        if (copyButton != null) copyButton.onClick.RemoveListener(CopyCode);
-
         if (RelayManager.Instance != null)
             RelayManager.Instance.OnRoomCodeSpawned -= HandleRoomCode;
     }
 
-    protected override void Subscribe()
+    void Update()
     {
-        client.OnChangedPhase += HandlePhase;
-        client.OnMyFoldLeftChanged += HandleFoldLeft;
-        client.OnMyChoiceChanged += HandleMyChoice;
-        client.OnRoundDecided += HandleRoundDecided;
-        client.OnOuted += HandleOuted;
-    }
+        // 방에서 나가면 코드가 지워진다 → 표시도 같이 갱신
+        ShowRoomCode();
 
-    protected override void Unsubscribe()
-    {
-        client.OnChangedPhase -= HandlePhase;
-        client.OnMyFoldLeftChanged -= HandleFoldLeft;
-        client.OnMyChoiceChanged -= HandleMyChoice;
-        client.OnRoundDecided -= HandleRoundDecided;
-        client.OnOuted -= HandleOuted;
-    }
+        string code = GetCode();
+        if (string.IsNullOrEmpty(code)) return;
 
-    protected override void Refresh()
-    {
-        HandlePhase(client.curPhase);
-        HandleMyChoice(client.myChoice);
+        if (Input.GetKeyDown(copyKey) && !TypingInInputField())
+        {
+            GUIUtility.systemCopyBuffer = code;
+            copiedUntil = Time.unscaledTime + copiedShowTime;
+        }
+
+        if (hintText != null)
+            hintText.text = (Time.unscaledTime < copiedUntil) ? copiedMessage : hintMessage;
     }
 
 
-    // ────────────────────────── 입력 ──────────────────────────
+    static string GetCode()
+        => (RelayManager.Instance != null) ? RelayManager.Instance.joinCode : null;
 
-    void OnGo() { if (client != null) client.RequestGo(); }
-    void OnFold() { if (client != null) client.RequestFold(); }
-    void OnOverload() { if (client != null) client.RequestOverload(); }
-    void OnPress() { if (client != null) client.RequestPress(); }
-
-
-    // ────────────────────────── 방 코드 ──────────────────────────
+    /// <summary>입력칸에 글자를 치는 중이면 C 키를 복사로 쓰지 않는다</summary>
+    static bool TypingInInputField()
+    {
+        var es = EventSystem.current;
+        if (es == null || es.currentSelectedGameObject == null) return false;
+        return es.currentSelectedGameObject.GetComponent<TMP_InputField>() != null;
+    }
 
     void HandleRoomCode(string code) => ShowRoomCode();
 
     void ShowRoomCode()
     {
-        string code = (RelayManager.Instance != null) ? RelayManager.Instance.joinCode : null;
+        string code = GetCode();
         bool has = !string.IsNullOrEmpty(code);
 
-        if (roomCodeGroup != null) roomCodeGroup.SetActive(has);
+        if (roomCodeGroup != null && roomCodeGroup.activeSelf != has)
+            roomCodeGroup.SetActive(has);
+
         if (roomCodeText != null && has) roomCodeText.text = code;
-    }
-
-    void CopyCode()
-    {
-        string code = (RelayManager.Instance != null) ? RelayManager.Instance.joinCode : null;
-        if (!string.IsNullOrEmpty(code))
-            GUIUtility.systemCopyBuffer = code;
-    }
-
-
-    // ────────────────────────── 상태 ──────────────────────────
-
-    void HandlePhase(GamePhase phase)
-    {
-        bool canChoose = (phase == GamePhase.talkTime);
-
-        SetActive(goButton, canChoose);
-        SetActive(overloadButton, canChoose);
-        SetActive(foldButton, canChoose);
-
-        if (foldButton != null && canChoose)
-            foldButton.interactable = (client != null && client.foldLeft > 0);
-
-        SetActive(pressButton, false);      // Press 지목은 OnRoundDecided에서
-    }
-
-    void HandleFoldLeft(int left)
-    {
-        if (foldButton == null) return;
-        if (client != null && client.curPhase == GamePhase.talkTime)
-            foldButton.interactable = (left > 0);
-    }
-
-    void HandleMyChoice(Choice c)
-    {
-        if (goHighlight != null) goHighlight.enabled = (c == Choice.Go);
-        if (foldHighlight != null) foldHighlight.enabled = (c == Choice.Fold);
-        if (overloadHighlight != null) overloadHighlight.enabled = (c == Choice.Overload);
-    }
-
-    void HandleRoundDecided(Result result, bool isMyTurn)
-    {
-        bool pressed = (result != Result.draw && result != Result.fold);
-        SetActive(pressButton, pressed && isMyTurn);
-    }
-
-    void HandleOuted(bool outed)
-    {
-        SetActive(pressButton, false);
-    }
-
-
-    static void SetActive(Button b, bool on)
-    {
-        if (b == null) return;
-        b.gameObject.SetActive(on);
-        if (on) b.interactable = true;
     }
 }
