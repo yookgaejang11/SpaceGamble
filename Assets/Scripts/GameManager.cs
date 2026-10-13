@@ -188,12 +188,19 @@ public class GameManager : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
+        CancelInvoke(nameof(AfterPresentationEnd));
+        session = null;
+        clients[0] = null;
+        clients[1] = null;
+        isReady[0] = isReady[1] = false;
+        isPresentationEnded[0] = isPresentationEnded[1] = false;
+        curPhase = GamePhase.waiting;
+
         if (NetworkManager.Singleton == null) return;
 
         NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
     }
-
 
     // ────────────────────────── 접속 / 끊김 ──────────────────────────
 

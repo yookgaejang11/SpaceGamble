@@ -2634,7 +2634,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Continue
+  m_text: Resume
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e327ac6b8dc44754f9cd0c18c07e2972, type: 2}
   m_sharedMaterial: {fileID: -1297379653602754422, guid: e327ac6b8dc44754f9cd0c18c07e2972, type: 2}
@@ -10140,7 +10140,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1029221537}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 456483955}
+        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+        m_MethodName: SetActive
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1029221537
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10557,7 +10569,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1082211150}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 456483955}
+        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+        m_MethodName: SetActive
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
 --- !u!114 &1082211150
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11104,7 +11128,7 @@ GameObject:
   - component: {fileID: 1178194388}
   - component: {fileID: 1178194387}
   m_Layer: 5
-  m_Name: Continue
+  m_Name: Resume
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13929,7 +13953,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1473220404}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 456483955}
+        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+        m_MethodName: SetActive
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1473220404
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17168,6 +17204,7 @@ GameObject:
   - component: {fileID: 1716841278}
   - component: {fileID: 1716841277}
   - component: {fileID: 1716841280}
+  - component: {fileID: 1716841281}
   m_Layer: 0
   m_Name: InGameUi
   m_TagString: Untagged
@@ -17278,6 +17315,23 @@ MonoBehaviour:
   hintMessage: '[F2] COPY'
   copiedMessage: COPIED!
   copiedShowTime: 1.5
+--- !u!114 &1716841281
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1716841275}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ae4480630314784495cca4a666f380b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  panel: {fileID: 427733968}
+  resumeButton: {fileID: 1178194387}
+  exitButton: {fileID: 870651550}
+  toggleKey: 27
+  exitReason: "\uBC29\uC744 \uB098\uAC14\uC2B5\uB2C8\uB2E4."
 --- !u!1001 &1751850422
 PrefabInstance:
   m_ObjectHideFlags: 0
