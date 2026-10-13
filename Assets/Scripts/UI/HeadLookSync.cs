@@ -13,6 +13,10 @@ using UnityEngine;
 ///   - Owner      : 마우스로 yaw/pitch 계산 → 카메라 회전 + NetworkVariable에 전송
 ///   - 그 외 모두 : NetworkVariable 값을 받아 머리 본에 적용 (Lerp로 부드럽게)
 ///
+/// 커서 해제:
+///   HeadLookSync.SetCursorFree(true)를 부르면 커서가 풀리고 시점 회전이 멈춘다.
+///   ESC 메뉴(PauseMenu)가 이걸 부른다. 상태는 HeadLookSync.CursorFree로 읽는다.
+///
 /// NetworkTransform을 쓰지 않는 이유:
 ///   애니메이터가 LateUpdate에서 본 포즈를 덮어쓰기 때문에, 본 Transform을
 ///   네트워크로 직접 동기화하면 값이 지워진다. 각도만 주고받고 각 클라이언트가
@@ -20,6 +24,25 @@ using UnityEngine;
 /// </summary>
 public class HeadLookSync : NetworkBehaviour
 {
+    /// <summary>true면 커서가 풀려 있다 (UI 클릭용). false면 중앙 잠금 상태</summary>
+    public static bool CursorFree { get; private set; }
+
+    static bool lockEnabled = true;     // lockCursor 설정의 정적 복사본
+
+    /// <summary>
+    /// 커서를 풀거나 다시 잠근다. 풀려 있는 동안 시점 회전은 멈춘다.
+    /// lockCursor가 꺼져 있으면 커서는 건드리지 않는다.
+    /// </summary>
+    public static void SetCursorFree(bool free)
+    {
+        CursorFree = free;
+
+        if (!lockEnabled) return;
+
+        Cursor.lockState = free ? CursorLockMode.None : CursorLockMode.Locked;
+        Cursor.visible = free;
+    }
+
     Animator animator;
     Quaternion headBaseLocal;
     [Header("참조")]
@@ -67,6 +90,8 @@ public class HeadLookSync : NetworkBehaviour
             return;
         }
 
+        lockEnabled = lockCursor;
+        CursorFree = false;
         if (lockCursor)
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -74,9 +99,26 @@ public class HeadLookSync : NetworkBehaviour
         }
     }
 
+    public override void OnNetworkDespawn()
+    {
+        if (!IsOwner) return;
+
+        // 방을 나가면 커서를 돌려준다 (로비 UI를 눌러야 하므로)
+        CursorFree = false;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
     void Update()
     {
         if (!IsOwner) return;
+
+        // 커서를 푼 동안(ESC 메뉴)은 시점을 돌리지 않는다
+        if (CursorFree)
+        {
+            SendIfDue();
+            return;
+        }
 
         float yawLimit = rule != null ? rule.lookYawLimit : 70f;
         float pitchLimit = rule != null ? rule.lookPitchLimit : 45f;
@@ -124,7 +166,7 @@ public class HeadLookSync : NetworkBehaviour
 
         if (head == null) return;
         //if (animator == null || !animator.isActiveAndEnabled)
-            head.localRotation = headBaseLocal;
+        head.localRotation = headBaseLocal;
         // 애니메이션이 만든 머리 포즈 위에, 캐릭터 기준 축으로 회전을 더한다.
         // (본의 로컬 축 방향은 모델마다 달라서 localRotation 대입은 쓰면 안 된다)
         head.rotation =

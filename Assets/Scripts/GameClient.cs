@@ -16,10 +16,14 @@ public class GameClient : NetworkBehaviour
     public float curTime;           // 대화 남은 시간 (로컬 계산)
     public bool isReady;            // 내 준비 상태
     public int opponentCard;        // 상대 카드
+    public bool opponentReady;
+    public bool opponentPresent;    //상대 존재 여부
 
 
     // ────────────────────────── UI가 구독할 이벤트 ──────────────────────────
-
+    public static event Action<GameClient> OnLocalClientLost; //클라이언트 나감
+    public event Action<bool> OnOpponentPresentChanged;     //상대 존재 여부
+    public event Action<bool, bool> OnReadyChanged;   // 내 것, 상대 것
     public event Action<GamePhase> OnChangedPhase;          // 페이즈 변경
     public event Action<int> OnRoundChanged;                // 라운드 변경
     public event Action<int> OnNumberSelected;              // 상대 카드
@@ -59,7 +63,11 @@ public class GameClient : NetworkBehaviour
     public override void OnNetworkDespawn()
     {
         myIndex.OnValueChanged -= HandleIndexChanged;
-        if (Local == this) Local = null;
+        if (Local == this)
+        {
+            Local = null;
+            OnLocalClientLost?.Invoke(this);   // 아직 파괴 전이라 UI가 정상적으로 구독 해제 가능
+        }
     }
 
     void HandleIndexChanged(int before, int after)
@@ -118,12 +126,19 @@ public class GameClient : NetworkBehaviour
     }
 
     [Rpc(SendTo.SpecifiedInParams)]
-    public void ReceiveReadyRpc(bool ready, RpcParams parms)
+    public void ReceiveOpponentPresentRpc(bool present, RpcParams parms)
     {
-        isReady = ready;
-        OnReadyPressed?.Invoke(isReady);
+        opponentPresent = present;
+        OnOpponentPresentChanged?.Invoke(present);
     }
 
+    [Rpc(SendTo.SpecifiedInParams)]
+    public void ReceiveReadyRpc(bool mine, bool opponent, RpcParams parms)
+    {
+        isReady = mine;
+        opponentReady = opponent;
+        OnReadyChanged?.Invoke(mine, opponent);
+    }
     [Rpc(SendTo.SpecifiedInParams)]
     public void ReceiveRoundRpc(int round, RpcParams parms)
     {
@@ -218,9 +233,10 @@ public class GameClient : NetworkBehaviour
     public void RequestReady()
     {
         if (!IsOwner) return;
+        isReady = !isReady;
+        OnReadyChanged?.Invoke(isReady, opponentReady);   // 상대 값은 마지막으로 받은 것 유지
         RequestReadyRpc();
     }
-
     public void RequestPress()
     {
         if (!IsOwner) return;
@@ -280,7 +296,7 @@ public class GameClient : NetworkBehaviour
         if (GUILayout.Button("OVERLOAD")) RequestOverload();
         if (GUILayout.Button("PRESS")) RequestPress();
         if (GUILayout.Button("연출끝")) EndPresentation();
-        if (GUILayout.Button("READY (F4)")) RequestReady();
+//        if (GUILayout.Button("READY (F4)")) RequestReady();
         GUILayout.EndArea();
     }
 }
