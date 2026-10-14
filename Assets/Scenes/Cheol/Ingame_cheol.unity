@@ -1835,7 +1835,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 201114959}
-  - component: {fileID: 201114961}
   - component: {fileID: 201114960}
   - component: {fileID: 201114962}
   m_Layer: 5
@@ -1909,14 +1908,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!222 &201114961
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 201114958}
-  m_CullTransparentMesh: 1
 --- !u!114 &201114962
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10057,8 +10048,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.23, y: 0}
-  m_SizeDelta: {x: -0.52, y: -0.04}
+  m_AnchoredPosition: {x: -0.2211, y: 0}
+  m_SizeDelta: {x: -0.5023, y: -0.04}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &910357738
 MonoBehaviour:
@@ -10945,7 +10936,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1023292830}
-  - component: {fileID: 1023292829}
   - component: {fileID: 1023292828}
   - component: {fileID: 1023292827}
   m_Layer: 5
@@ -11094,14 +11084,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!222 &1023292829
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1023292826}
-  m_CullTransparentMesh: 1
 --- !u!224 &1023292830
 RectTransform:
   m_ObjectHideFlags: 0
@@ -14349,6 +14331,8 @@ MonoBehaviour:
   animateAstronaut: 1
   astronautPullTrigger: Pull
   astronautPressTrigger: Press
+  leverDelay: 0
+  buttonDelay: 0
   alarmAnimator: {fileID: 0}
   alarmTrigger: Alarm
   ejectDummyPrefab: {fileID: 0}
@@ -14415,10 +14399,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   p1Texts:
   - {fileID: 201114962}
-  - {fileID: 1761344434}
+  - {fileID: 1023292827}
   p2Texts:
   - {fileID: 1824671162}
-  - {fileID: 1023292827}
+  - {fileID: 1761344434}
   hiddenMark: ??
   emptyMark: ---
   readyMark: READY
@@ -17975,7 +17959,7 @@ GameObject:
   - component: {fileID: 1729248218}
   - component: {fileID: 1729248219}
   m_Layer: 0
-  m_Name: butten
+  m_Name: button
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -18511,7 +18495,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1761344431}
-  - component: {fileID: 1761344433}
   - component: {fileID: 1761344432}
   - component: {fileID: 1761344434}
   m_Layer: 5
@@ -18585,14 +18568,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!222 &1761344433
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1761344430}
-  m_CullTransparentMesh: 1
 --- !u!114 &1761344434
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19823,7 +19798,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1824671159}
-  - component: {fileID: 1824671161}
   - component: {fileID: 1824671160}
   - component: {fileID: 1824671162}
   m_Layer: 5
@@ -19897,14 +19871,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!222 &1824671161
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1824671158}
-  m_CullTransparentMesh: 1
 --- !u!114 &1824671162
 MonoBehaviour:
   m_ObjectHideFlags: 0
