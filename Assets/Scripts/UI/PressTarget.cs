@@ -152,9 +152,29 @@ public class PressTarget : ClientUIBase
         }
     }
 
+    // ===== [추가] 조준 카메라 찾기 (ChoiceTarget과 같은 방식) =====
+    /// <summary>
+    /// 조준에 쓸 카메라.
+    ///   1) Inspector의 cam  2) 내 플레이어 프리팹 안의 켜진 카메라  3) Camera.main
+    /// Camera.main만 쓰면 씬에 MainCamera 태그 카메라(로비 카메라 등)가 남아 있을 때 엉뚱한 걸 집는다.
+    /// </summary>
+    Camera GetAimCamera()
+    {
+        if (cam != null) return cam;
+
+        if (client != null)
+        {
+            foreach (var c in client.GetComponentsInChildren<Camera>())
+                if (c.isActiveAndEnabled) return c;
+        }
+        return Camera.main;
+    }
+    // ===== [추가] 끝 =====
+
     bool IsAimedAt()
     {
-        Camera c = (cam != null) ? cam : Camera.main;
+        // [원래] Camera c = (cam != null) ? cam : Camera.main;
+        Camera c = GetAimCamera();                                  // [변경]
         if (c == null) return false;
 
         Vector3 screenPoint = HeadLookSync.CursorFree
