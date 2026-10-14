@@ -5,12 +5,15 @@ using UnityEngine.EventSystems;
 /// <summary>
 /// 화면 고정 HUD. 캔버스(Screen Space - Overlay)에 붙인다.
 ///
-/// 월드 표시면(홀로그램, 보드, 패널)으로 못 가는 것만 여기에 둔다.
-///   - 방 코드 표시 + 키(기본 C)로 복사
+/// 방 코드 표시 + 키(기본 C)로 복사.
+///   - 페이즈가 waiting일 때만 보인다 (게임이 시작되면 숨김)
+///   - 안 보일 때는 복사 키도 동작하지 않는다
 ///
 /// 커서가 잠겨 있는 1인칭이라 복사 버튼 대신 키를 쓴다.
 /// 선택 버튼은 SeatPanel, Press는 PressTarget, 나가기는 PauseMenu가 맡는다.
-/// GameClient를 구독할 필요가 없어서 ClientUIBase를 쓰지 않는다.
+///
+/// 이벤트를 구독하지 않고 매 프레임 GameClient.Local.curPhase를 읽는다.
+/// (값 비교 몇 번이라 비용이 거의 없고, 방 입장/퇴장 타이밍을 신경 쓸 필요가 없다)
 /// </summary>
 public class GameHud : MonoBehaviour
 {
@@ -29,27 +32,17 @@ public class GameHud : MonoBehaviour
     float copiedUntil;
 
 
-    void OnEnable()
-    {
-        if (RelayManager.Instance != null)
-            RelayManager.Instance.OnRoomCodeSpawned += HandleRoomCode;
-
-        ShowRoomCode();
-    }
-
-    void OnDisable()
-    {
-        if (RelayManager.Instance != null)
-            RelayManager.Instance.OnRoomCodeSpawned -= HandleRoomCode;
-    }
-
     void Update()
     {
-        // 방에서 나가면 코드가 지워진다 → 표시도 같이 갱신
-        ShowRoomCode();
-
         string code = GetCode();
-        if (string.IsNullOrEmpty(code)) return;
+        bool shown = ShouldShow(code);
+
+        if (roomCodeGroup != null && roomCodeGroup.activeSelf != shown)
+            roomCodeGroup.SetActive(shown);
+
+        if (!shown) return;
+
+        if (roomCodeText != null) roomCodeText.text = code;
 
         if (Input.GetKeyDown(copyKey) && !TypingInInputField())
         {
@@ -65,24 +58,20 @@ public class GameHud : MonoBehaviour
     static string GetCode()
         => (RelayManager.Instance != null) ? RelayManager.Instance.joinCode : null;
 
+    /// <summary>코드가 있고, 내 클라이언트가 있고, 페이즈가 waiting일 때만</summary>
+    static bool ShouldShow(string code)
+    {
+        if (string.IsNullOrEmpty(code)) return false;
+
+        var client = GameClient.Local;
+        return client != null && client.curPhase == GamePhase.waiting;
+    }
+
     /// <summary>입력칸에 글자를 치는 중이면 C 키를 복사로 쓰지 않는다</summary>
     static bool TypingInInputField()
     {
         var es = EventSystem.current;
         if (es == null || es.currentSelectedGameObject == null) return false;
         return es.currentSelectedGameObject.GetComponent<TMP_InputField>() != null;
-    }
-
-    void HandleRoomCode(string code) => ShowRoomCode();
-
-    void ShowRoomCode()
-    {
-        string code = GetCode();
-        bool has = !string.IsNullOrEmpty(code);
-
-        if (roomCodeGroup != null && roomCodeGroup.activeSelf != has)
-            roomCodeGroup.SetActive(has);
-
-        if (roomCodeText != null && has) roomCodeText.text = code;
     }
 }

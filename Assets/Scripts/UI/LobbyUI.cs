@@ -11,7 +11,6 @@ public class LobbyUI : MonoBehaviour
     [SerializeField] GameObject InGameUI;
     [SerializeField] Button CreateBtn;
     [SerializeField] Button JoinBtn;
-    public Text roomCode;
     public TMP_InputField joinCode;
     public async void JoinRoom()
     {
@@ -23,11 +22,6 @@ public class LobbyUI : MonoBehaviour
     {
         await RelayManager.Instance.CreateRoom();
         Debug.Log("\"Room Code:\" " + RelayManager.Instance.joinCode);
-        if (roomCode != null)
-        {
-          
-            roomCode.text = "Room Code:" + await RelayManager.Instance.CreateRoom();
-        }
     }
 
 
