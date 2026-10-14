@@ -278,15 +278,24 @@ public class GameManager : NetworkBehaviour
 
         bool readyPhase = (phase == GamePhase.waiting || phase == GamePhase.GameOver);
 
-        for (int i = 0; i < 2; i++)
+        /*        for (int i = 0; i < 2; i++)
+                {
+                    if (clients[i] == null) continue;
+
+                    if (readyPhase)
+                    {
+                        clients[0].ReceiveReadyRpc(isReady[0], isReady[1], clients[0].ToMe);
+                        clients[1].ReceiveReadyRpc(isReady[1], isReady[0], clients[1].ToMe);
+                    }
+
+                    clients[i].ReceivePhaseRpc(phase, clients[i].ToMe);
+                }*/
+        for (int i = 0; i < 2; i++)     // 혼자 있을 때 NullReferenceException 오류 발생
         {
             if (clients[i] == null) continue;
 
             if (readyPhase)
-            {
-                clients[0].ReceiveReadyRpc(isReady[0], isReady[1], clients[0].ToMe);
-                clients[1].ReceiveReadyRpc(isReady[1], isReady[0], clients[1].ToMe);
-            }
+                clients[i].ReceiveReadyRpc(isReady[i], isReady[1 - i], clients[i].ToMe);
 
             clients[i].ReceivePhaseRpc(phase, clients[i].ToMe);
         }
