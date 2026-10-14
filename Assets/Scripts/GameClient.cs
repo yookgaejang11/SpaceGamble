@@ -279,24 +279,24 @@ public class GameClient : NetworkBehaviour
 
     // ────────────────────────── 임시 디버그 UI ──────────────────────────
 
-    void OnGUI()
-    {
-        if (!IsOwner) return;
+//    void OnGUI()
+//    {
+//        if (!IsOwner) return;
 
-        GUILayout.BeginArea(new Rect(10, 10, 220, 340));
-        GUILayout.Label($"P{myIndex.Value}   {curPhase}");
-        GUILayout.Label($"상대 카드 : {opponentCard}");
-        GUILayout.Label($"내 선택   : {myChoice}");
-        GUILayout.Label($"fold left : {foldLeft}");
-        GUILayout.Label($"ready     : {isReady}");
-        GUILayout.Label($"time      : {curTime:F1}");
+//        GUILayout.BeginArea(new Rect(10, 10, 220, 340));
+//        GUILayout.Label($"P{myIndex.Value}   {curPhase}");
+//        GUILayout.Label($"상대 카드 : {opponentCard}");
+//        GUILayout.Label($"내 선택   : {myChoice}");
+//        GUILayout.Label($"fold left : {foldLeft}");
+//        GUILayout.Label($"ready     : {isReady}");
+//        GUILayout.Label($"time      : {curTime:F1}");
 
-        if (GUILayout.Button("GO")) RequestGo();
-        if (GUILayout.Button("FOLD")) RequestFold();
-        if (GUILayout.Button("OVERLOAD")) RequestOverload();
-        if (GUILayout.Button("PRESS")) RequestPress();
-        if (GUILayout.Button("연출끝")) EndPresentation();
-//        if (GUILayout.Button("READY (F4)")) RequestReady();
-        GUILayout.EndArea();
-    }
+//        if (GUILayout.Button("GO")) RequestGo();
+//        if (GUILayout.Button("FOLD")) RequestFold();
+//        if (GUILayout.Button("OVERLOAD")) RequestOverload();
+//        if (GUILayout.Button("PRESS")) RequestPress();
+//        if (GUILayout.Button("연출끝")) EndPresentation();
+////        if (GUILayout.Button("READY (F4)")) RequestReady();
+//        GUILayout.EndArea();
+//    }
 }

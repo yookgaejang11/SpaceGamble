@@ -20,7 +20,7 @@ MonoBehaviour:
   downMaxVal: 6
   downMinVal: 1
   extraVal: 20
-  talkingTime: 1
+  talkingTime: 20
   cutSceneTime: 10
   basicPer: 10
   overloadMul: 1.5

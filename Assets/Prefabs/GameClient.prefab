@@ -1100,7 +1100,6 @@ MonoBehaviour:
   ownerAudioListener: {fileID: 8122791046014482399}
   mouseSensitivity: 2
   lockCursor: 1
-  freeCursorKey: 9
   smooth: 12
 --- !u!114 &6162957772407020405
 MonoBehaviour:
@@ -1116,6 +1115,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   seatIndex: 0
   hitCollider: {fileID: 0}
+  visualRoot: {fileID: 0}
   hoverText: {fileID: 0}
   hoverMessage: PRESS
   maxDistance: 6
@@ -2529,7 +2529,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 0.01
   far clip plane: 1000
   field of view: 60
   orthographic: 0

@@ -278,24 +278,17 @@ public class GameManager : NetworkBehaviour
 
         bool readyPhase = (phase == GamePhase.waiting || phase == GamePhase.GameOver);
 
-        /*        for (int i = 0; i < 2; i++)
-                {
-                    if (clients[i] == null) continue;
-
-                    if (readyPhase)
-                    {
-                        clients[0].ReceiveReadyRpc(isReady[0], isReady[1], clients[0].ToMe);
-                        clients[1].ReceiveReadyRpc(isReady[1], isReady[0], clients[1].ToMe);
-                    }
-
-                    clients[i].ReceivePhaseRpc(phase, clients[i].ToMe);
-                }*/
         for (int i = 0; i < 2; i++)
         {
             if (clients[i] == null) continue;
 
             if (readyPhase)
-                clients[i].ReceiveReadyRpc(isReady[i], isReady[1 - i], clients[i].ToMe);
+            {
+                if (clients[0] != null)
+                   clients[0].ReceiveReadyRpc(isReady[0], isReady[1], clients[0].ToMe);
+                if (clients[1] != null)
+                    clients[1].ReceiveReadyRpc(isReady[1], isReady[0], clients[1].ToMe);
+            }
 
             clients[i].ReceivePhaseRpc(phase, clients[i].ToMe);
         }
@@ -476,20 +469,20 @@ public class GameManager : NetworkBehaviour
     }
     // ────────────────────────── 디버그 ──────────────────────────
 
-    void OnGUI()
-    {
-        if (!IsServer) return;
-        if (session == null) return;
+    //void OnGUI()
+    //{
+    //    if (!IsServer) return;
+    //    if (session == null) return;
 
-        GUILayout.BeginArea(new Rect(470, 0, 260, 320));
-        GUILayout.Label("=== SERVER ===");
-        GUILayout.Label($"phase {curPhase}   round {session.curRound}");
-        GUILayout.Label($"ready : {isReady[0]} / {isReady[1]}");
-        GUILayout.Label($"cards : {session.cardNums[0]} / {session.cardNums[1]}");
-        GUILayout.Label($"choice: {session.choices[0]} / {session.choices[1]}");
-        GUILayout.Label($"per   : {session.curOutPer}%  (x{session.GetOverloadMul(gameRule):0.0})");
-        GUILayout.Label($"presser: {session.pressedPlayer}");
-        GUILayout.Label($"timer : {talkTimer:F1}");
-        GUILayout.EndArea();
-    }
+    //    GUILayout.BeginArea(new Rect(470, 0, 260, 320));
+    //    GUILayout.Label("=== SERVER ===");
+    //    GUILayout.Label($"phase {curPhase}   round {session.curRound}");
+    //    GUILayout.Label($"ready : {isReady[0]} / {isReady[1]}");
+    //    GUILayout.Label($"cards : {session.cardNums[0]} / {session.cardNums[1]}");
+    //    GUILayout.Label($"choice: {session.choices[0]} / {session.choices[1]}");
+    //    GUILayout.Label($"per   : {session.curOutPer}%  (x{session.GetOverloadMul(gameRule):0.0})");
+    //    GUILayout.Label($"presser: {session.pressedPlayer}");
+    //    GUILayout.Label($"timer : {talkTimer:F1}");
+    //    GUILayout.EndArea();
+    //}
 }
