@@ -290,7 +290,7 @@ public class GameManager : NetworkBehaviour
 
                     clients[i].ReceivePhaseRpc(phase, clients[i].ToMe);
                 }*/
-        for (int i = 0; i < 2; i++)     // 혼자 있을 때 NullReferenceException 오류 발생
+        for (int i = 0; i < 2; i++)
         {
             if (clients[i] == null) continue;
 
