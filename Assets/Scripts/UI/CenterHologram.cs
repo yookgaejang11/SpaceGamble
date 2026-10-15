@@ -88,6 +88,38 @@ public class CenterHologram : ClientUIBase
     [Tooltip("더미가 사라지기까지 시간 (초). 재시작하면 그 전에도 지워진다")]
     public float dummyLifetime = 6f;
 
+    // ===== [추가] 의자째 사출 (진짜 플레이어 모델 + 의자를 같이 날린다) =====
+    [Header("[추가] 의자째 사출 — 체크하면 이 방식, 끄면 위의 더미 방식")]
+    public bool flyWithChair = true;
+
+    [Tooltip("자리별 의자 (0번 / 1번). 비워두면 플레이어만 날아간다. 플레이어 프리팹 밖(씬)에 있는 의자를 넣는다")]
+    public Transform[] chairs = new Transform[2];
+
+    [Tooltip("발사 전 덜덜 떨리는 시간(초)과 세기(m)")]
+    public float shakeTime = 0.4f;
+    public float shakeAmount = 0.03f;
+
+    [Tooltip("위로 날아가는 시간(초)과 높이(m)")]
+    public float flyTime = 1.6f;
+    public float flyHeight = 25f;
+
+    [Tooltip("가로 = 시간(0~1), 세로 = 높이 비율(0~1). 기본값: 처음엔 천천히, 갈수록 빨라짐")]
+    public AnimationCurve flyCurve = new AnimationCurve(
+        new Keyframe(0f, 0f, 0f, 0f),       // 시작: 기울기 0 → 천천히 출발
+        new Keyframe(1f, 1f, 2.5f, 0f));    // 끝: 기울기 2.5 → 빠르게 치솟음
+
+    [Tooltip("날아가면서 뒤로 젖혀지는 각도(도). 앞으로 숙여지면 음수로 바꾸기")]
+    public float flyTiltAngle = 25f;
+
+    [Tooltip("다 날아간 뒤 의자와 플레이어를 숨길지 (천장을 뚫고 보이는 것 방지)")]
+    public bool hideAfterFlight = true;
+
+    [Header("[추가] 고개 축 쳐짐 (우주인 Animator의 Trigger)")]
+    public string slumpTrigger = "Slump";
+    [Tooltip("발사가 시작되고 몇 초 뒤에 고개가 쳐질지")]
+    public float slumpDelay = 0.15f;
+    // ===== [추가] 끝 =====
+
     [Header("[추가] 사운드 — 없으면 비워두기")]
     public AudioSource sfx;
     public AudioClip leverClip;
@@ -115,6 +147,15 @@ public class CenterHologram : ClientUIBase
     int presserSeat = -1;                               // 이번 라운드에 누르는 사람 자리 (Open에서 정해짐)
     readonly List<GameObject> dummies = new List<GameObject>();
     readonly Dictionary<GameClient, bool> hiddenModels = new Dictionary<GameClient, bool>();
+
+    // [추가] 의자째 사출 — 다음 라운드에 되돌리려고 기억해 두는 것들
+    Coroutine flight;                                   // 날아가는 중인 코루틴
+    GameClient flownClient;                             // 날아간 플레이어
+    Transform flownChair;                               // 날아간 의자
+    Vector3 chairStartPos;                              // 의자 원래 위치
+    Quaternion chairStartRot;                           // 의자 원래 회전
+    HeadLookSync flownLook;                             // 잠깐 꺼둔 시선 스크립트
+    Animator flownAnim;                                 // 고개 쳐짐을 튼 Animator
     // ===== [추가] 끝 =====
 
 
@@ -445,7 +486,9 @@ public class CenterHologram : ClientUIBase
         if (outed)
         {
             Play(ejectClip);
-            Eject(presserSeat);                                 // 누른 사람이 사출된다
+            // [원래] Eject(presserSeat);                        // 누른 사람이 사출된다
+            if (flyWithChair) StartEjectFlight(presserSeat);    // [변경] 의자째 위로 + 고개 쳐짐
+            else Eject(presserSeat);                            // [변경] 체크 끄면 예전 더미 방식
         }
         else
         {
@@ -504,6 +547,8 @@ public class CenterHologram : ClientUIBase
     /// <summary>재시작/대기/퇴장 시: 더미 제거 + 숨겼던 모델 복구</summary>
     void ResetStage()
     {
+        StopEjectFlight();                                  // [추가] 날아간 의자/플레이어 원위치
+
         foreach (var d in dummies) if (d != null) Destroy(d);
         dummies.Clear();
 
@@ -513,6 +558,140 @@ public class CenterHologram : ClientUIBase
 
         presserSeat = -1;
     }
+
+    // ===== [추가] 의자째 사출 =====
+    //
+    // 흐름: 덜덜 떨림(shakeTime) → 위로 발사(flyTime) + 고개 쳐짐 → 숨김
+    // 각자 화면에서 똑같이 계산해서 움직인다 (네트워크로 위치를 주고받지 않음).
+    // 떨림만 랜덤이라 양쪽 화면이 미세하게 다르지만, 날아가는 경로는 같다.
+
+    /// <summary>그 자리의 플레이어와 의자를 같이 위로 날린다</summary>
+    void StartEjectFlight(int seat)
+    {
+        if (seat < 0) return;
+        StopEjectFlight();                                  // 혹시 이전 것이 남아 있으면 먼저 되돌림
+
+        GameClient target = FindClientBySeat(seat);
+        if (target == null) return;
+
+        flownClient = target;
+        flownChair = (chairs != null && seat < chairs.Length) ? chairs[seat] : null;
+        if (flownChair != null)
+        {
+            chairStartPos = flownChair.position;
+            chairStartRot = flownChair.rotation;
+        }
+
+        // ★ 중요: HeadLookSync는 매 프레임(LateUpdate) 머리 본 회전을 덮어쓴다.
+        //   켜둔 채로 두면 고개 쳐짐 애니메이션의 머리 움직임이 지워진다 → 잠깐 끈다.
+        flownLook = target.GetComponentInChildren<HeadLookSync>();
+        if (flownLook != null) flownLook.enabled = false;
+
+        flownAnim = target.GetComponentInChildren<Animator>();
+
+        flight = StartCoroutine(EjectFlightRoutine(target.transform, flownChair));
+        Log($"의자째 사출: 자리 {seat}");
+    }
+
+    IEnumerator EjectFlightRoutine(Transform player, Transform chair)
+    {
+        // 기준점(pivot) = 의자가 있으면 의자, 없으면 플레이어.
+        // 기준점을 옮기고 돌리면, 의자와 플레이어가 한 덩어리처럼 같이 따라간다.
+        Transform pivotT = (chair != null) ? chair : player;
+        Vector3 pivot = pivotT.position;
+        Vector3 tiltAxis = pivotT.right;                    // 옆 방향 축으로 뒤로 젖힌다
+
+        Vector3 pStart = player.position;
+        Quaternion pRot = player.rotation;
+        Vector3 cStart = (chair != null) ? chair.position : Vector3.zero;
+        Quaternion cRot = (chair != null) ? chair.rotation : Quaternion.identity;
+
+        // 1) 발사 직전 덜덜 떨림
+        float t = 0f;
+        while (t < shakeTime)
+        {
+            t += Time.deltaTime;
+            Vector3 jitter = Random.insideUnitSphere * shakeAmount;
+            Place(player, chair, pivot + jitter, Quaternion.identity, pivot, pStart, pRot, cStart, cRot);
+            yield return null;
+        }
+
+        // 2) 발사 + 고개 쳐짐
+        TriggerLater(flownAnim, slumpTrigger, slumpDelay);
+
+        t = 0f;
+        while (t < flyTime)
+        {
+            t += Time.deltaTime;
+            float k = Mathf.Clamp01(t / flyTime);                           // 진행도 0 → 1
+
+            Vector3 newPivot = pivot + Vector3.up * (flyCurve.Evaluate(k) * flyHeight);
+            // 오른쪽 축 기준 음수 회전 = 윗부분이 뒤로 넘어감
+            Quaternion tilt = Quaternion.AngleAxis(-flyTiltAngle * k, tiltAxis);
+
+            Place(player, chair, newPivot, tilt, pivot, pStart, pRot, cStart, cRot);
+            yield return null;
+        }
+
+        // 3) 화면 밖으로 나갔으니 숨긴다 (다음 RoundStart / waiting에서 ResetStage가 되돌림)
+        if (hideAfterFlight)
+        {
+            if (flownClient != null) SetRenderers(flownClient, false);
+            if (chair != null) SetRenderersOf(chair, false);
+        }
+
+        flight = null;
+    }
+
+    /// <summary>
+    /// 기준점을 newPivot으로 옮기고 tilt만큼 돌렸을 때 의자/플레이어가 있어야 할 곳에 놓는다.
+    /// (기준점에서 떨어진 거리(pStart - pivot)도 같이 돌려야 한 덩어리처럼 기울어진다)
+    /// </summary>
+    static void Place(Transform player, Transform chair, Vector3 newPivot, Quaternion tilt,
+                      Vector3 pivot, Vector3 pStart, Quaternion pRot, Vector3 cStart, Quaternion cRot)
+    {
+        player.SetPositionAndRotation(newPivot + tilt * (pStart - pivot), tilt * pRot);
+        if (chair != null)
+            chair.SetPositionAndRotation(newPivot + tilt * (cStart - pivot), tilt * cRot);
+    }
+
+    /// <summary>날아간 의자/플레이어를 원래대로 (위치, 보이기, 시선 스크립트, 애니메이션)</summary>
+    void StopEjectFlight()
+    {
+        if (flight != null) { StopCoroutine(flight); flight = null; }
+
+        if (flownChair != null)
+        {
+            flownChair.SetPositionAndRotation(chairStartPos, chairStartRot);
+            SetRenderersOf(flownChair, true);
+        }
+
+        if (flownClient != null)                            // 방을 나가 파괴됐으면 null로 판정됨
+        {
+            flownClient.MoveSeat();                         // 동료 코드의 public 함수: 원래 자리로 이동
+            SetRenderers(flownClient, true);
+        }
+
+        if (flownLook != null) flownLook.enabled = true;   // 시선 다시 켬
+
+        if (flownAnim != null)
+        {
+            flownAnim.Rebind();                             // Animator를 처음 상태(Idle)로 되돌림
+            flownAnim.Update(0f);
+        }
+
+        flownClient = null;
+        flownChair = null;
+        flownLook = null;
+        flownAnim = null;
+    }
+
+    static void SetRenderersOf(Transform root, bool on)
+    {
+        foreach (var r in root.GetComponentsInChildren<Renderer>(true))
+            r.enabled = on;
+    }
+    // ===== [추가] 끝 =====
 
     /// <summary>내 컴퓨터에 있는 GameClient 중 그 자리 번호를 가진 것 (양쪽 플레이어 모두 존재한다)</summary>
     static GameClient FindClientBySeat(int seat)
