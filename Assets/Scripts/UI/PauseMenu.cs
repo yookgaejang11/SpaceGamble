@@ -25,6 +25,7 @@ public class PauseMenu : MonoBehaviour
     public GameObject panel;
     public Button resumeButton;     // 없으면 비워두기
     public Button exitButton;
+    public GameObject AskUI;
 
     [Header("키")]
     public KeyCode toggleKey = KeyCode.Escape;
@@ -85,7 +86,7 @@ public class PauseMenu : MonoBehaviour
     {
         if (!IsOpen) return;
         IsOpen = false;
-
+        AskUI.SetActive(false);
         if (panel != null) panel.SetActive(false);
         HeadLookSync.SetCursorFree(false);
     }
@@ -107,7 +108,7 @@ public class PauseMenu : MonoBehaviour
     void OnExit()
     {
         if (RelayManager.Instance == null) return;
-
+        AskUI.SetActive(false);
         ForceClose();
         RelayManager.Instance.LeaveRoom(exitReason);
     }
