@@ -82,8 +82,29 @@ public class SeatPanel : ClientUIBase
     /// <summary>방을 나가서 클라이언트가 사라졌을 때: 선택 UI를 끈다</summary>
     protected override void OnClientLost()
     {
-        if (selectUI != null) selectUI.SetActive(false);
+        // [원래] if (selectUI != null) selectUI.SetActive(false);
+        if (selectUI == null) return;                                   // [변경]
+        var crt = selectUI.GetComponent<CrtPopup>();
+        if (crt != null) crt.HideImmediate();                           // 방 나갈 땐 애니메이션 없이 바로
+        else selectUI.SetActive(false);
     }
+
+    // ===== [추가] 선택 UI 켜기/끄기 (CrtPopup이 있으면 TV 켜지듯 연출) =====
+    void SetSelectUI(bool on)
+    {
+        if (selectUI == null) return;
+
+        var crt = selectUI.GetComponent<CrtPopup>();
+        if (crt == null)
+        {
+            selectUI.SetActive(on);                                     // 없으면 예전처럼 바로
+            return;
+        }
+
+        if (on) crt.Show();     // 이미 켜져 있으면 CrtPopup이 알아서 무시한다
+        else crt.Hide();        // 이미 꺼져 있으면 CrtPopup이 알아서 무시한다
+    }
+    // ===== [추가] 끝 =====
 
     // 선택 클릭은 버튼마다 붙인 ChoiceTarget.cs가 조준점 레이캐스트로 처리한다
     // (커서가 잠겨 있어서 UI Button의 onClick은 1인칭 중에는 불리지 않는다)
@@ -132,7 +153,8 @@ public class SeatPanel : ClientUIBase
         bool canChoose = IsMine && phase == GamePhase.talkTime;
 
         // ===== [추가] 선택 UI 묶음: 내 자리 + talkTime에서만 켠다 =====
-        if (selectUI != null) selectUI.SetActive(canChoose);
+        // [원래] if (selectUI != null) selectUI.SetActive(canChoose);
+        SetSelectUI(canChoose);                                         // [변경] TV 켜지듯 / 꺼지듯
 
         if (debugLog)
             Debug.Log($"[SeatPanel {seatIndex}] phase={phase} myIndex={client.myIndex.Value} " +

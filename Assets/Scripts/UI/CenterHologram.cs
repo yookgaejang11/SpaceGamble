@@ -114,6 +114,13 @@ public class CenterHologram : ClientUIBase
     [Tooltip("다 날아간 뒤 의자와 플레이어를 숨길지 (천장을 뚫고 보이는 것 방지)")]
     public bool hideAfterFlight = true;
 
+    [Header("[추가] 천장 사출 문 (0번 자리 / 1번 자리) — 없으면 비워두기")]
+    [Tooltip("자리 위 천장 문의 Animator. 사출되는 사람 자리의 문만 열린다")]
+    public Animator[] hatchAnimators = new Animator[2];
+    public string hatchTrigger = "Open";
+    [Tooltip("문이 다 열리는 데 걸리는 시간(초). 이 시간 전에는 발사하지 않는다 (문에 머리 박는 것 방지)")]
+    public float hatchOpenTime = 0.5f;
+
     [Header("[추가] 고개 축 쳐짐 (우주인 Animator의 Trigger)")]
     public string slumpTrigger = "Slump";
     [Tooltip("발사가 시작되고 몇 초 뒤에 고개가 쳐질지")]
@@ -488,7 +495,7 @@ public class CenterHologram : ClientUIBase
             Play(ejectClip);
             // [원래] Eject(presserSeat);                        // 누른 사람이 사출된다
             if (flyWithChair) StartEjectFlight(presserSeat);    // [변경] 의자째 위로 + 고개 쳐짐
-            else Eject(presserSeat);                            // [변경] 체크 끄면 예전 더미 방식
+            else { OpenHatch(presserSeat); Eject(presserSeat); }   // [변경] 체크 끄면 예전 더미 방식 (+ 천장 문)
         }
         else
         {
@@ -548,6 +555,7 @@ public class CenterHologram : ClientUIBase
     void ResetStage()
     {
         StopEjectFlight();                                  // [추가] 날아간 의자/플레이어 원위치
+        ResetHatches();                                     // [추가] 천장 문 닫기
 
         foreach (var d in dummies) if (d != null) Destroy(d);
         dummies.Clear();
@@ -589,6 +597,8 @@ public class CenterHologram : ClientUIBase
 
         flownAnim = target.GetComponentInChildren<Animator>();
 
+        OpenHatch(seat);                                    // [추가] 천장 문이 열리면서 떨림 시작
+
         flight = StartCoroutine(EjectFlightRoutine(target.transform, flownChair));
         Log($"의자째 사출: 자리 {seat}");
     }
@@ -606,9 +616,11 @@ public class CenterHologram : ClientUIBase
         Vector3 cStart = (chair != null) ? chair.position : Vector3.zero;
         Quaternion cRot = (chair != null) ? chair.rotation : Quaternion.identity;
 
-        // 1) 발사 직전 덜덜 떨림
+        // 1) 발사 직전 덜덜 떨림 (천장 문이 다 열릴 때까지는 계속 떤다)
+        // [원래] while (t < shakeTime)
+        float shakeDuration = Mathf.Max(shakeTime, hatchOpenTime);         // [추가]
         float t = 0f;
-        while (t < shakeTime)
+        while (t < shakeDuration)                                          // [변경]
         {
             t += Time.deltaTime;
             Vector3 jitter = Random.insideUnitSphere * shakeAmount;
@@ -684,6 +696,25 @@ public class CenterHologram : ClientUIBase
         flownChair = null;
         flownLook = null;
         flownAnim = null;
+    }
+
+    /// <summary>[추가] 그 자리 위 천장 문을 연다</summary>
+    void OpenHatch(int seat)
+    {
+        if (hatchAnimators == null || seat < 0 || seat >= hatchAnimators.Length) return;
+        Trigger(hatchAnimators[seat], hatchTrigger);
+    }
+
+    /// <summary>[추가] 천장 문을 전부 닫힌 처음 상태로 (Animator 기본 State = 닫힘이어야 함)</summary>
+    void ResetHatches()
+    {
+        if (hatchAnimators == null) return;
+        foreach (var a in hatchAnimators)
+        {
+            if (a == null || !a.isActiveAndEnabled) continue;
+            a.Rebind();
+            a.Update(0f);
+        }
     }
 
     static void SetRenderersOf(Transform root, bool on)
