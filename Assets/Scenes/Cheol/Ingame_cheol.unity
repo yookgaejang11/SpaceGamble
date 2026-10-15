@@ -6274,7 +6274,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 6c292ff610f11d2429e07fa977d4d8c5, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -13714,7 +13714,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1312250606
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13846,7 +13846,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1312250605}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 44b5a544beea1f7448544e6e0b55461a, type: 3}
+  m_Script: {fileID: 11500000, guid: 8008e4782ff2ece4e83d51831521c1b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   resultGroup: {fileID: 576898828}
@@ -14671,6 +14671,7 @@ MonoBehaviour:
   astronautPullTrigger: Pull
   astronautPressTrigger: Press
   leverDelay: 0
+  leverSoundDelay: 1.1
   buttonDelay: 0
   alarmAnimator: {fileID: 0}
   alarmTrigger: Alarm
@@ -14721,6 +14722,17 @@ MonoBehaviour:
   hatchOpenTime: 0.5
   slumpTrigger: Slump
   slumpDelay: 0.15
+  seatBoard: {fileID: 1397987879}
+  rollStartDelay: 0.4
+  useLeverEvent: 1
+  rollAfterLever: 0.6
+  leverEventTimeout: 3
+  endTimeline: {fileID: 0}
+  beforeTimelineDelay: 0.3
+  endGameRoot: {fileID: 0}
+  endGameTexts: []
+  winText: SURVIVOR CONFIRMED
+  loseText: CREW MEMBER EJECTED
   sfx: {fileID: 0}
   leverClip: {fileID: 0}
   scrambleTickClip: {fileID: 0}
@@ -14761,7 +14773,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   LobbyUi: {fileID: 600434643}
-  InGameUI: {fileID: 0}
+  InGameUI: {fileID: 1312250605}
   CreateBtn: {fileID: 2076214944}
   JoinBtn: {fileID: 1648237590}
   joinCode: {fileID: 1944321341}
@@ -14790,6 +14802,17 @@ MonoBehaviour:
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   readyColor: {r: 0.5, g: 1, b: 0.6, a: 1}
   dimColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  rollTime: 1.4
+  myStopRatio: 0.7
+  fastInterval: 0.04
+  slowInterval: 0.2
+  rollingColor: {r: 0.6, g: 0.75, b: 0.85, a: 1}
+  revealColor: {r: 1, g: 0.85, b: 0.3, a: 1}
+  landPunch: 0.3
+  sfx: {fileID: 0}
+  tickClip: {fileID: 0}
+  lockClip: {fileID: 0}
+  landClip: {fileID: 0}
 --- !u!4 &1397987880
 Transform:
   m_ObjectHideFlags: 0

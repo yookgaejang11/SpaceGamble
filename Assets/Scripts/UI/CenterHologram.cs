@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;   // [추가] 사출 더미 목록
 using TMPro;
 using UnityEngine;
+using UnityEngine.Playables;          // [추가] 게임 끝 타임라인 (PlayableDirector)
 
 /// <summary>
 /// 가운데 공용 홀로그램. 두 플레이어가 같이 보는 정보만 띄운다.
@@ -68,8 +69,14 @@ public class CenterHologram : ClientUIBase
     public string astronautPressTrigger = "Press";
 
     [Header("[추가] 손이 닿는 타이밍 맞추기 (초)")]
-    [Tooltip("우주인이 lever_pull을 시작하고 몇 초 뒤에 레버가 움직이기 시작할지 (손이 레버에 닿는 순간)")]
-    public float leverDelay = 0f;
+    [Tooltip("우주인이 lever_pull을 시작하고 몇 초 뒤에 레버를 트리거할지. " +
+             "레버가 늦으면 줄이고, 0으로도 늦으면 음수(-0.3 등)로: 레버를 먼저 출발시키고 우주인이 그만큼 늦게 출발한다")]
+    // [원래] public float leverDelay = 0f;
+    // [변경] 클립 분석값: lever_pull에서 왼손이 레버를 끌어내리는 구간 = 1.1초~1.63초,
+    //        lever_action은 0.47초까지 가만히 있다가 움직임 → 1.1 - 0.47 ≈ 0.65초 늦게 트리거
+    public float leverDelay = 0.65f;
+    [Tooltip("[추가] 우주인 동작 시작 후 몇 초 뒤에 레버 소리를 낼지 (레버가 실제로 움직이기 시작하는 순간 ≈ 1.1초)")]
+    public float leverSoundDelay = 1.1f;
     [Tooltip("우주인이 butten_push를 시작하고 몇 초 뒤에 버튼이 눌리기 시작할지 (손가락이 버튼에 닿는 순간)")]
     public float buttonDelay = 0f;
 
@@ -127,6 +134,40 @@ public class CenterHologram : ClientUIBase
     public float slumpDelay = 0.15f;
     // ===== [추가] 끝 =====
 
+    [Header("[추가] 자리 보드 (Player1/Player2 숫자 칸) — RoundStart에 슬롯머신처럼 돌린다")]
+    [Tooltip("SeatBoard가 붙은 오브젝트. 비워두면 보드는 talkTime에 그냥 숫자가 바뀐다")]
+    public SeatBoard seatBoard;
+
+    [Tooltip("[추가] 레버 당기기(우주인 동작) 시작 후 몇 초 뒤에 숫자가 돌기 시작할지. " +
+             "레버가 '철컥' 내려가는 순간에 맞추면 된다. 보드와 홀로그램 스크램블이 같이 이 시간에 시작한다")]
+    // [원래] public float rollStartDelay = 0.4f;
+    public float rollStartDelay = 1.65f;    // [변경] 레버가 끝까지 내려가는 순간 (손이 1.63초에 다 당김)
+
+    // ===== [추가] 레버 애니메이션 이벤트 =====
+    [Header("[추가] 레버 애니메이션 이벤트 (lever_pull 클립의 OnLeverPull 이벤트에 맞춰 레버가 움직임)")]
+    [Tooltip("체크하면 Lever Delay / Lever Sound Delay / Roll Start Delay 대신 클립 이벤트를 쓴다")]
+    public bool useLeverEvent = true;
+    [Tooltip("레버가 움직이기 시작하고 몇 초 뒤에 숫자가 돌기 시작할지 (레버가 다 내려가는 시간 ≈ 0.6초)")]
+    public float rollAfterLever = 0.6f;
+    [Tooltip("이 시간(초) 안에 이벤트가 안 오면 레버를 그냥 움직이고 진행한다 (멈춤 방지)")]
+    public float leverEventTimeout = 3f;
+    // ===== [추가] 끝 =====
+
+    // ===== [추가] 게임 끝 연출: 우주인 비행 끝 → 타임라인 → EndGame 문구 =====
+    [Header("[추가] 게임 끝 (GameOver) — 비행이 끝나면 타임라인, 그 다음 EndGame 문구")]
+    [Tooltip("처형 타임라인. Play On Awake 끄고 Wrap Mode는 None. 비워두면 바로 문구로 넘어간다")]
+    public PlayableDirector endTimeline;
+    [Tooltip("비행이 끝나고 타임라인 시작 전 잠깐 쉬는 시간(초)")]
+    public float beforeTimelineDelay = 0.3f;
+
+    [Tooltip("EndGame 문구 묶음 (평소엔 꺼둠). CrtPopup이 붙어 있으면 TV 켜지듯 나온다. 비워두면 홀로그램 메시지만 바뀜")]
+    public GameObject endGameRoot;
+    [Tooltip("승패 문구를 쓸 텍스트들 (3D TextMeshPro / UI TextMeshProUGUI 둘 다 가능)")]
+    public TMP_Text[] endGameTexts;
+    public string winText = "SURVIVOR CONFIRMED";
+    public string loseText = "CREW MEMBER EJECTED";
+    // ===== [추가] 끝 =====
+
     [Header("[추가] 사운드 — 없으면 비워두기")]
     public AudioSource sfx;
     public AudioClip leverClip;
@@ -163,6 +204,15 @@ public class CenterHologram : ClientUIBase
     Quaternion chairStartRot;                           // 의자 원래 회전
     HeadLookSync flownLook;                             // 잠깐 꺼둔 시선 스크립트
     Animator flownAnim;                                 // 고개 쳐짐을 튼 Animator
+
+    // [추가] 레버 이벤트 상태 (이번 라운드에 이미 움직였는지)
+    readonly bool[] leverMoved = new bool[2];
+    bool leverSoundDone;
+    bool leverEventArrived;
+
+    // [추가] 게임 끝 연출
+    bool? pendingWin;                                   // 내가 이겼나 (GameOver 직전에 도착 → 저장만)
+    Coroutine gameOverRoutine;
     // ===== [추가] 끝 =====
 
 
@@ -179,6 +229,7 @@ public class CenterHologram : ClientUIBase
         client.OnGameWin += HandleGameWin;
         client.OnOpponentPresentChanged += HandleOpponentPresent;
         client.OnNumberSelected += HandleOpponentCard;          // [추가]
+        AstronautAnimEvents.LeverPulled += HandleLeverPulled;   // [추가] 레버 애니메이션 이벤트
     }
 
     protected override void Unsubscribe()
@@ -192,6 +243,7 @@ public class CenterHologram : ClientUIBase
         client.OnGameWin -= HandleGameWin;
         client.OnOpponentPresentChanged -= HandleOpponentPresent;
         client.OnNumberSelected -= HandleOpponentCard;          // [추가]
+        AstronautAnimEvents.LeverPulled -= HandleLeverPulled;   // [추가]
     }
 
     protected override void Refresh()
@@ -203,6 +255,7 @@ public class CenterHologram : ClientUIBase
     protected override void OnClientLost()
     {
         StopPresentation();
+        StopGameOver();                                 // [추가]
         ResetStage();
     }
 
@@ -210,6 +263,7 @@ public class CenterHologram : ClientUIBase
     {
         base.OnDisable();
         StopPresentation();
+        StopGameOver();                                 // [추가]
         ResetStage();
     }
     // ===== [추가] 끝 =====
@@ -225,6 +279,10 @@ public class CenterHologram : ClientUIBase
         // ===== [추가] 연출 페이즈가 아니면 진행 중이던 연출을 끊는다 (명세서 14쪽) =====
         if (phase != GamePhase.RoundStart && phase != GamePhase.Open && phase != GamePhase.Result)
             StopPresentation();
+
+        // GameOver가 아니면 게임 끝 연출(타임라인/문구)도 끊고 숨긴다 (재시작, 방 대기 등)
+        if (phase != GamePhase.GameOver)
+            StopGameOver();
         // ===== [추가] 끝 =====
 
         switch (phase)
@@ -260,7 +318,9 @@ public class CenterHologram : ClientUIBase
                 break;
 
             case GamePhase.GameOver:
-                break;      // 메시지는 OnGameWin에서 설정됨
+                // [원래] break;      // 메시지는 OnGameWin에서 설정됨
+                StartGameOver();                                // [변경] 비행 끝 → 타임라인 → EndGame 문구
+                break;
         }
     }
 
@@ -295,6 +355,24 @@ public class CenterHologram : ClientUIBase
 
     void HandleOpponentCard(int card) => pendingCard = card;   // [추가]
 
+    /// <summary>
+    /// [추가] 우주인 lever_pull 클립의 OnLeverPull 이벤트 → 그 자리 레버를 움직인다.
+    /// 각자 화면에서 각자 우주인 애니메이션이 부르므로 네트워크와 상관없이 양쪽 다 맞는다.
+    /// </summary>
+    void HandleLeverPulled(int seat)
+    {
+        if (!useLeverEvent || client == null || client.curPhase != GamePhase.RoundStart) return;
+        if (seat < 0 || seat >= 2 || seat >= leverAnimators.Length || leverMoved[seat]) return;
+
+        leverMoved[seat] = true;
+        leverEventArrived = true;
+        Trigger(leverAnimators[seat], leverTrigger);
+
+        if (!leverSoundDone) { leverSoundDone = true; Play(leverClip); }   // 두 자리가 동시라 소리는 한 번만
+        Log($"레버 이벤트: 자리 {seat}");
+    }
+
+
     void HandlePer(int before, int now)
     {
         // [원래] SetTexts(perTexts, $"{now}%");
@@ -327,12 +405,94 @@ public class CenterHologram : ClientUIBase
         pendingOuted = outed;                                   // [변경]
     }
 
-    // GameOver는 연출이 없는 페이즈라 받자마자 보여준다 (원래 그대로)
+    // [원래] GameOver는 연출이 없는 페이즈라 받자마자 보여준다
+    // [변경] 이제 GameOver에도 연출(타임라인)이 있으므로 저장만 하고, 타임라인이 끝난 뒤 보여준다
     void HandleGameWin(bool win)
     {
-        SetMessage(win ? "SURVIVOR CONFIRMED" : "CREW MEMBER EJECTED",
-                   win ? normalColor : warnColor);
+        // [원래] SetMessage(win ? "SURVIVOR CONFIRMED" : "CREW MEMBER EJECTED",
+        // [원래]            win ? normalColor : warnColor);
+        pendingWin = win;                                       // [변경]
     }
+
+    // ===== [추가] 게임 끝 연출 =====
+    //
+    // 순서: (Result 연출에서 시작된) 우주인 비행이 끝날 때까지 기다림
+    //       → 처형 타임라인 재생 → 끝나면 EndGame 문구
+    // GameOver는 서버가 연출 끝 신호를 기다리지 않는 페이즈라 EndPresentation을 보내지 않는다.
+
+    void StartGameOver()
+    {
+        StopGameOver();
+        gameOverRoutine = StartCoroutine(GameOverRoutine());
+    }
+
+    IEnumerator GameOverRoutine()
+    {
+        // 1) 비행이 아직 진행 중이면 끝날 때까지 (flight는 비행 코루틴이 끝나면 null이 된다)
+        while (flight != null) yield return null;
+
+        if (beforeTimelineDelay > 0f)
+            yield return new WaitForSeconds(beforeTimelineDelay);
+
+        // 2) 처형 타임라인
+        if (endTimeline != null)
+        {
+            Log("처형 타임라인 시작");
+            endTimeline.time = 0;
+            endTimeline.Play();
+
+            // 길이만큼 기다린다. Wrap Mode가 Hold여도 멈추지 않고 넘어가도록 시간으로도 끊는다
+            float endAt = Time.time + (float)endTimeline.duration;
+            yield return null;
+            while (Time.time < endAt && endTimeline.state == PlayState.Playing)
+                yield return null;
+        }
+
+        // 3) EndGame 문구
+        ShowEndGame(pendingWin ?? false);
+        gameOverRoutine = null;
+    }
+
+    void ShowEndGame(bool win)
+    {
+        string s = win ? winText : loseText;
+        Color c = win ? normalColor : warnColor;
+
+        SetMessage(s, c);                                       // 홀로그램에도 (원래 하던 것)
+
+        if (endGameTexts != null)
+            foreach (var t in endGameTexts)
+                if (t != null) { t.text = s; t.color = c; }
+
+        if (endGameRoot != null)
+        {
+            var crt = endGameRoot.GetComponent<CrtPopup>();
+            if (crt != null) crt.Show();                        // TV 켜지듯
+            else endGameRoot.SetActive(true);
+        }
+        Log($"EndGame 문구: {s}");
+    }
+
+    /// <summary>게임 끝 연출 중단 + 문구 숨김 (재시작 / 대기 / 방 나감)</summary>
+    void StopGameOver()
+    {
+        if (gameOverRoutine != null) { StopCoroutine(gameOverRoutine); gameOverRoutine = null; }
+
+        if (endTimeline != null && endTimeline.state == PlayState.Playing)
+            endTimeline.Stop();
+
+        if (endGameRoot != null)
+        {
+            var crt = endGameRoot.GetComponent<CrtPopup>();
+            if (crt != null) crt.HideImmediate();
+            else endGameRoot.SetActive(false);
+        }
+
+        // pendingWin은 여기서 지우지 않는다.
+        // 승패(OnGameWin)는 GameOver 페이즈보다 "먼저" 도착하는데, StartGameOver도 이 함수를 부르므로
+        // 여기서 지우면 방금 받은 승패가 날아간다. 다음 게임의 승패가 오면 덮어써진다.
+    }
+    // ===== [추가] 끝 =====
 
 
     // ────────────────────────── 연출 ──────────────────────────
@@ -397,18 +557,65 @@ public class CenterHologram : ClientUIBase
         yield return new WaitForSeconds(0.5f);
 
         // [변경] 우주인 동작을 먼저 시작하고, 손이 닿는 시점(leverDelay)에 레버가 움직인다
-        if (animateAstronaut)
+        // ===== [변경] 레버: 애니메이션 이벤트 방식 / 시간 방식 =====
+        leverMoved[0] = leverMoved[1] = false;
+        leverSoundDone = false;
+        leverEventArrived = false;
+
+        if (useLeverEvent && animateAstronaut)
         {
+            // 이벤트 방식: 우주인만 출발시키고, 레버는 클립 이벤트(OnLeverPull)가 오면 HandleLeverPulled가 움직인다
             Trigger(GetAstronautAnimator(0), astronautPullTrigger);
             Trigger(GetAstronautAnimator(1), astronautPullTrigger);
+
+            float waited = 0f;
+            while (!leverEventArrived && waited < leverEventTimeout)
+            {
+                waited += Time.deltaTime;
+                yield return null;
+            }
+
+            if (!leverEventArrived)     // 이벤트가 안 옴 → 레버를 지금 움직이고 그냥 진행 (멈추지 않게)
+            {
+                Log("레버 이벤트가 안 옴 (클립 이벤트 / AstronautAnimEvents 위치 확인)");
+                for (int i = 0; i < leverAnimators.Length && i < 2; i++)
+                    if (!leverMoved[i]) { leverMoved[i] = true; Trigger(leverAnimators[i], leverTrigger); }
+                if (!leverSoundDone) { leverSoundDone = true; Play(leverClip); }
+            }
+
+            // 레버가 다 내려갈 때까지 기다렸다가 숫자 시작
+            yield return new WaitForSeconds(rollAfterLever);
         }
-        foreach (var a in leverAnimators) TriggerLater(a, leverTrigger, leverDelay);
-        Play(leverClip);
-        yield return new WaitForSeconds(0.4f);
+        else
+        {
+            // 시간 방식 (이벤트를 안 쓸 때)
+            // [추가] Lever Delay가 음수면 = 레버를 먼저 출발시키고, 우주인을 그만큼 늦게 출발시킨다
+            float astroWait = Mathf.Max(0f, -leverDelay);
+            float leverWait = Mathf.Max(0f, leverDelay);
+
+            if (animateAstronaut)
+            {
+                // [원래] Trigger(GetAstronautAnimator(0), astronautPullTrigger);
+                // [원래] Trigger(GetAstronautAnimator(1), astronautPullTrigger);
+                TriggerLater(GetAstronautAnimator(0), astronautPullTrigger, astroWait);
+                TriggerLater(GetAstronautAnimator(1), astronautPullTrigger, astroWait);
+            }
+            // [원래] foreach (var a in leverAnimators) TriggerLater(a, leverTrigger, leverDelay);
+            foreach (var a in leverAnimators) TriggerLater(a, leverTrigger, leverWait);
+            // [원래] Play(leverClip);
+            PlayLater(leverClip, astroWait + leverSoundDelay);
+            // [원래] yield return new WaitForSeconds(0.4f);
+            yield return new WaitForSeconds(astroWait + rollStartDelay);
+        }
+        // ===== [변경] 끝 =====
+
+        // [추가] 자리 보드(Player1/Player2 칸) 슬롯머신 시작 — 홀로그램 스크램블과 동시에 돈다
+        if (seatBoard != null) seatBoard.PlayRoll(pendingCard);
 
         // 숫자 스크램블
         float t = 0f, tick = 0f;
-        while (t < 0.8f)
+        // [원래] while (t < 0.8f)
+        while (t < 0.8f || (seatBoard != null && seatBoard.IsRolling))   // [변경] 보드가 멈출 때까지 같이 돈다
         {
             t += Time.deltaTime;
             tick += Time.deltaTime;
@@ -703,6 +910,7 @@ public class CenterHologram : ClientUIBase
     {
         if (hatchAnimators == null || seat < 0 || seat >= hatchAnimators.Length) return;
         Trigger(hatchAnimators[seat], hatchTrigger);
+        Log($"천장 문 열기: 자리 {seat}");                    // [추가] 코드가 연 건지 확인용
     }
 
     /// <summary>[추가] 천장 문을 전부 닫힌 처음 상태로 (Animator 기본 State = 닫힘이어야 함)</summary>
@@ -799,6 +1007,20 @@ public class CenterHologram : ClientUIBase
     }
 
     // [추가] 사운드가 비어 있으면 조용히 넘어간다
+    // [추가] delay초 뒤에 소리 (0이면 바로)
+    void PlayLater(AudioClip clip, float delay)
+    {
+        if (clip == null) return;
+        if (delay <= 0f) { Play(clip); return; }
+        StartCoroutine(PlayAfter(clip, delay));
+    }
+
+    IEnumerator PlayAfter(AudioClip clip, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        Play(clip);
+    }
+
     void Play(AudioClip clip)
     {
         if (sfx != null && clip != null) sfx.PlayOneShot(clip);
