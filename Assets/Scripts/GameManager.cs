@@ -285,7 +285,7 @@ public class GameManager : NetworkBehaviour
             if (readyPhase)
             {
                 if (clients[0] != null)
-                   clients[0].ReceiveReadyRpc(isReady[0], isReady[1], clients[0].ToMe);
+                    clients[0].ReceiveReadyRpc(isReady[0], isReady[1], clients[0].ToMe);
                 if (clients[1] != null)
                     clients[1].ReceiveReadyRpc(isReady[1], isReady[0], clients[1].ToMe);
             }
@@ -328,6 +328,10 @@ public class GameManager : NetworkBehaviour
         // 선택 공개 — 시점 변환 (내 것, 상대 것)
         clients[0].ReceiveChoiceRevealedRpc(session.choices[0], session.choices[1], clients[0].ToMe);
         clients[1].ReceiveChoiceRevealedRpc(session.choices[1], session.choices[0], clients[1].ToMe);
+
+        // [추가] 카드 공개 — 시점 변환 (내 것, 상대 것). 연출(Open)에서 "버튼 누르기 전"에 보여준다
+        clients[0].ReceiveCardsRevealRpc(session.cardNums[0], session.cardNums[1], clients[0].ToMe);
+        clients[1].ReceiveCardsRevealRpc(session.cardNums[1], session.cardNums[0], clients[1].ToMe);
 
         Result r = session.DecideResult();
 

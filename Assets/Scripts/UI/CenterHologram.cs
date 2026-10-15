@@ -132,11 +132,58 @@ public class CenterHologram : ClientUIBase
     public string slumpTrigger = "Slump";
     [Tooltip("발사가 시작되고 몇 초 뒤에 고개가 쳐질지")]
     public float slumpDelay = 0.15f;
+
+    [Header("[추가] 의자 밑 불꽃 (0번 자리 / 1번 자리)")]
+    [Tooltip("의자 자식으로 넣은 불꽃 ParticleSystem. 발사 순간 재생, 다음 라운드에 꺼짐. " +
+             "Play On Awake 끄기, Simulation Space = World (불꽃 꼬리가 뒤에 남게)")]
+    public ParticleSystem[] thrusterFx = new ParticleSystem[2];
     // ===== [추가] 끝 =====
 
     [Header("[추가] 자리 보드 (Player1/Player2 숫자 칸) — RoundStart에 슬롯머신처럼 돌린다")]
     [Tooltip("SeatBoard가 붙은 오브젝트. 비워두면 보드는 talkTime에 그냥 숫자가 바뀐다")]
     public SeatBoard seatBoard;
+
+    // ===== [추가] 카드 공개 / 누를 차례 표시 =====
+    [Header("[추가] 카드 공개 (Open 연출, 버튼 누르기 전)")]
+    [Tooltip("체크하면 FOLD로 끝난 라운드에도 숫자를 공개한다")]
+    public bool revealOnFold = false;
+
+    [Header("[추가] 누를 차례 표시 (0번 자리 / 1번 자리)")]
+    [Tooltip("누를 사람 자리에서만 켜질 오브젝트 (빨간 조명, 화살표, 깜빡이는 링 등). 평소엔 꺼둔다")]
+    public GameObject[] presserMarkers = new GameObject[2];
+    public string youPressText = "YOU MUST PRESS THE BUTTON";
+    public string oppPressText = "OPPONENT MUST PRESS THE BUTTON";
+    [Tooltip("Press 단계 문구 (내 차례 / 상대 차례)")]
+    public string pressNowText = "PRESS THE BUTTON";
+    public string waitPressText = "WAITING FOR OPPONENT";
+
+    [Header("[추가] 누를 사람 버튼 빨간불 (0번 자리 / 1번 자리)")]
+    [Tooltip("각 자리 사출 버튼에 붙인 Light (Point Light 추천). 평소엔 꺼둔다. 누를 사람 쪽만 깜빡인다")]
+    public Light[] pressButtonLights = new Light[2];
+    public Color blinkColor = Color.red;
+    [Tooltip("켜져 있는 시간 / 꺼져 있는 시간 (초)")]
+    public float blinkOnTime = 0.25f;
+    public float blinkOffTime = 0.25f;
+
+    [Header("[추가] OVERLOAD 확률 표시")]
+    [Tooltip("확률 숫자가 원래 값 → 올라간 값으로 올라가는 시간(초)")]
+    public float overloadCountTime = 0.6f;
+
+    [Header("[추가] 사출 사이렌")]
+    [Tooltip("사출될 때 켤 사이렌 오브젝트들 (불 2개 등). 평소엔 꺼둔다 (오브젝트째 꺼도 됨)")]
+    public GameObject[] sirenObjects = new GameObject[2];
+    // [원래] [Tooltip("사이렌 소리 전용 AudioSource (반복 재생용). 효과음 sfx와 따로 두는 걸 추천")]
+    // [원래] public AudioSource sirenSource;
+    // [원래] public AudioClip sirenClip;
+    [Tooltip("[변경] SoundManager Sounds 목록의 사이렌 id (반복 재생)")]
+    public string sndSiren = "siren";
+    [Tooltip("사이렌이 울린 뒤 몇 초 후에 발사할지 = 사출 연출이 이만큼 길어진다")]
+    public float sirenLeadTime = 2f;
+    [Tooltip("비행이 끝나고 몇 초 더 울리다가 끌지")]
+    public float sirenTailTime = 1f;
+    [Tooltip("사이렌 오브젝트를 Y축으로 돌리는 속도(도/초). 경광등처럼 빙글빙글. 0이면 안 돌림 (이미 애니메이션이 있으면 0)")]
+    public float sirenSpinSpeed = 0f;
+    // ===== [추가] 끝 =====
 
     [Tooltip("[추가] 레버 당기기(우주인 동작) 시작 후 몇 초 뒤에 숫자가 돌기 시작할지. " +
              "레버가 '철컥' 내려가는 순간에 맞추면 된다. 보드와 홀로그램 스크램블이 같이 이 시간에 시작한다")]
@@ -168,15 +215,25 @@ public class CenterHologram : ClientUIBase
     public string loseText = "CREW MEMBER EJECTED";
     // ===== [추가] 끝 =====
 
-    [Header("[추가] 사운드 — 없으면 비워두기")]
-    public AudioSource sfx;
-    public AudioClip leverClip;
-    public AudioClip scrambleTickClip;
-    public AudioClip revealClip;
-    public AudioClip overloadClip;
-    public AudioClip chargeClip;
-    public AudioClip ejectClip;
-    public AudioClip safeClip;
+    // [원래] [Header("[추가] 사운드 — 없으면 비워두기")]
+    [Header("[변경] 사운드 id (SoundManager의 Sounds 목록 이름) — 비우면 소리 없음")]
+    // [원래] public AudioSource sfx;
+    // [원래] public AudioClip leverClip;
+    // [원래] public AudioClip scrambleTickClip;
+    // [원래] public AudioClip revealClip;
+    // [원래] public AudioClip overloadClip;
+    // [원래] public AudioClip chargeClip;
+    // [원래] public AudioClip ejectClip;
+    // [원래] public AudioClip safeClip;
+    // [변경] 소리는 전부 SoundManager가 관리한다. 여기엔 SoundManager 'Sounds' 목록의 id(이름)만 적는다
+    [Tooltip("SoundManager의 Sounds 목록에 있는 id")]
+    public string sndLever = "lever";
+    public string sndScrambleTick = "scramble_tick";
+    public string sndReveal = "reveal";
+    public string sndOverload = "overload";
+    public string sndCharge = "charge";
+    public string sndEject = "eject";
+    public string sndSafe = "safe";
 
     [Header("[추가] 디버그")]
     public bool debugLog = false;
@@ -193,6 +250,13 @@ public class CenterHologram : ClientUIBase
     (int before, int now)? pendingPer;
 
     int presserSeat = -1;                               // 이번 라운드에 누르는 사람 자리 (Open에서 정해짐)
+    (int mine, int opp)? pendingCards;                  // [추가] 공개될 양쪽 카드 (EndTalk에서 도착 → 저장만)
+    int shownPer;                                       // [추가] 화면에 보이는 기본 사출 확률 (OVERLOAD 계산 기준)
+    bool overloadShown;                                 // [추가] 이번 Open에서 올라간 확률을 보여줬나
+    Coroutine blinkRoutine;                             // [추가] 버튼 빨간불 깜빡임
+    Light blinkingLight;
+    Coroutine sirenSpinRoutine;                         // [추가] 사이렌 회전
+    bool sirenOn;
     readonly List<GameObject> dummies = new List<GameObject>();
     readonly Dictionary<GameClient, bool> hiddenModels = new Dictionary<GameClient, bool>();
 
@@ -204,6 +268,7 @@ public class CenterHologram : ClientUIBase
     Quaternion chairStartRot;                           // 의자 원래 회전
     HeadLookSync flownLook;                             // 잠깐 꺼둔 시선 스크립트
     Animator flownAnim;                                 // 고개 쳐짐을 튼 Animator
+    int flownSeat = -1;                                 // [추가] 날아간 자리 (불꽃용)
 
     // [추가] 레버 이벤트 상태 (이번 라운드에 이미 움직였는지)
     readonly bool[] leverMoved = new bool[2];
@@ -229,6 +294,7 @@ public class CenterHologram : ClientUIBase
         client.OnGameWin += HandleGameWin;
         client.OnOpponentPresentChanged += HandleOpponentPresent;
         client.OnNumberSelected += HandleOpponentCard;          // [추가]
+        client.OnCardsRevealed += HandleCardsRevealed;          // [추가] 카드 공개
         AstronautAnimEvents.LeverPulled += HandleLeverPulled;   // [추가] 레버 애니메이션 이벤트
     }
 
@@ -243,6 +309,7 @@ public class CenterHologram : ClientUIBase
         client.OnGameWin -= HandleGameWin;
         client.OnOpponentPresentChanged -= HandleOpponentPresent;
         client.OnNumberSelected -= HandleOpponentCard;          // [추가]
+        client.OnCardsRevealed -= HandleCardsRevealed;          // [추가]
         AstronautAnimEvents.LeverPulled -= HandleLeverPulled;   // [추가]
     }
 
@@ -309,7 +376,11 @@ public class CenterHologram : ClientUIBase
                 break;
 
             case GamePhase.Press:
-                SetMessage("AWAITING INPUT", warnColor);
+                // [원래] SetMessage("AWAITING INPUT", warnColor);
+                // [변경] 내 차례인지에 따라 문구가 다르다
+                bool myPress = client != null && presserSeat == client.myIndex.Value;
+                SetMessage(myPress ? pressNowText : waitPressText, warnColor);
+                ShowPresserMarker(presserSeat);                 // 혹시 꺼졌으면 다시
                 break;
 
             case GamePhase.Result:
@@ -355,6 +426,8 @@ public class CenterHologram : ClientUIBase
 
     void HandleOpponentCard(int card) => pendingCard = card;   // [추가]
 
+    void HandleCardsRevealed(int mine, int opp) => pendingCards = (mine, opp);   // [추가] 저장만, 공개는 Open 연출
+
     /// <summary>
     /// [추가] 우주인 lever_pull 클립의 OnLeverPull 이벤트 → 그 자리 레버를 움직인다.
     /// 각자 화면에서 각자 우주인 애니메이션이 부르므로 네트워크와 상관없이 양쪽 다 맞는다.
@@ -368,7 +441,7 @@ public class CenterHologram : ClientUIBase
         leverEventArrived = true;
         Trigger(leverAnimators[seat], leverTrigger);
 
-        if (!leverSoundDone) { leverSoundDone = true; Play(leverClip); }   // 두 자리가 동시라 소리는 한 번만
+        if (!leverSoundDone) { leverSoundDone = true; Play(sndLever); }   // 두 자리가 동시라 소리는 한 번만
         Log($"레버 이벤트: 자리 {seat}");
     }
 
@@ -430,6 +503,10 @@ public class CenterHologram : ClientUIBase
     {
         // 1) 비행이 아직 진행 중이면 끝날 때까지 (flight는 비행 코루틴이 끝나면 null이 된다)
         while (flight != null) yield return null;
+
+        // [추가] 비행이 끝나고 조금 뒤 사이렌 끄기 (타임라인 시작 전)
+        if (sirenTailTime > 0f) yield return new WaitForSeconds(sirenTailTime);
+        SirenOff();
 
         if (beforeTimelineDelay > 0f)
             yield return new WaitForSeconds(beforeTimelineDelay);
@@ -580,7 +657,7 @@ public class CenterHologram : ClientUIBase
                 Log("레버 이벤트가 안 옴 (클립 이벤트 / AstronautAnimEvents 위치 확인)");
                 for (int i = 0; i < leverAnimators.Length && i < 2; i++)
                     if (!leverMoved[i]) { leverMoved[i] = true; Trigger(leverAnimators[i], leverTrigger); }
-                if (!leverSoundDone) { leverSoundDone = true; Play(leverClip); }
+                if (!leverSoundDone) { leverSoundDone = true; Play(sndLever); }
             }
 
             // 레버가 다 내려갈 때까지 기다렸다가 숫자 시작
@@ -603,7 +680,7 @@ public class CenterHologram : ClientUIBase
             // [원래] foreach (var a in leverAnimators) TriggerLater(a, leverTrigger, leverDelay);
             foreach (var a in leverAnimators) TriggerLater(a, leverTrigger, leverWait);
             // [원래] Play(leverClip);
-            PlayLater(leverClip, astroWait + leverSoundDelay);
+            PlayLater(sndLever, astroWait + leverSoundDelay);
             // [원래] yield return new WaitForSeconds(0.4f);
             yield return new WaitForSeconds(astroWait + rollStartDelay);
         }
@@ -623,13 +700,13 @@ public class CenterHologram : ClientUIBase
             {
                 tick = 0f;
                 SetMessage($"OPPONENT PRIORITY  {Random.Range(1, 11)}", normalColor);
-                Play(scrambleTickClip);
+                Play(sndScrambleTick);
             }
             yield return null;
         }
 
         SetMessage($"OPPONENT PRIORITY  {pendingCard}", normalColor);
-        Play(revealClip);
+        Play(sndReveal);
         yield return new WaitForSeconds(0.8f);
     }
 
@@ -641,17 +718,73 @@ public class CenterHologram : ClientUIBase
         {
             var (mine, opp) = pendingReveal.Value;
             SetMessage($"YOU {ChoiceLabel(mine)}   OPPONENT {ChoiceLabel(opp)}", normalColor);
-            Play(revealClip);
+            Play(sndReveal);
             yield return new WaitForSeconds(1.0f);
 
             if (mine == Choice.Overload || opp == Choice.Overload)
             {
-                SetMessage("SYSTEM OVERLOAD", warnColor);
+                // [원래] SetMessage("SYSTEM OVERLOAD", warnColor);
+                // [원래] Trigger(alarmAnimator, alarmTrigger);
+                // [원래] Play(overloadClip);
+                // [원래] yield return new WaitForSeconds(0.8f);
+
+                // ===== [변경] 이번 라운드에 올라간 사출 확률을 보여준다 =====
+                // 서버(GameSession.PressButton)와 똑같이 계산: 현재 확률 × 배율 → 반올림 → 0~100
+                bool both = (mine == Choice.Overload && opp == Choice.Overload);
+                var rule = GameManager.Instance != null ? GameManager.Instance.gameRule : null;
+                float mul = rule != null ? (both ? rule.bothOverloadMul : rule.overloadMul) : (both ? 2f : 1.5f);
+                int boosted = System.Math.Clamp((int)System.Math.Round(shownPer * mul), 0, 100);
+
+                SetMessage($"SYSTEM OVERLOAD  x{mul:0.#}", warnColor);
                 Trigger(alarmAnimator, alarmTrigger);
-                Play(overloadClip);
-                yield return new WaitForSeconds(0.8f);
+                Play(sndOverload);
+                yield return new WaitForSeconds(0.5f);
+
+                // 확률 숫자가 원래 값 → 올라간 값으로 차르르 올라간다
+                int basePer = shownPer;
+                // [추가] 괄호 안 숫자 색 (TMP 리치 텍스트용 #RRGGBB)
+                string hex = ColorUtility.ToHtmlStringRGB(warnColor);
+                float t = 0f;
+                while (t < overloadCountTime)
+                {
+                    t += Time.deltaTime;
+                    int v = Mathf.RoundToInt(Mathf.Lerp(basePer, boosted, t / overloadCountTime));
+                    // [원래] SetTexts(perTexts, $"{v}%");
+                    // [원래] SetPerColor(warnColor);
+                    // [변경] "20%(30%)" — 원래 확률은 그대로, 괄호 안(증가된 확률)만 빨갛게 올라간다
+                    SetTexts(perTexts, $"{basePer}%<color=#{hex}>({v}%)</color>");
+                    SetPerColor(normalColor);
+                    yield return null;
+                }
+                // [원래] SetTexts(perTexts, $"{boosted}%");
+                SetTexts(perTexts, $"{basePer}%<color=#{hex}>({boosted}%)</color>");   // [변경]
+                SetMessage($"EJECTION RISK  {basePer}% -> {boosted}%", warnColor);
+                overloadShown = true;
+                yield return new WaitForSeconds(1.0f);
+                // ===== [변경] 끝 =====
             }
         }
+
+        // ===== [추가] 1.5) 카드 공개: 내 숫자 ?? → 진짜 숫자 (버튼 누르기 전) =====
+        bool folded = pendingDecision.HasValue && pendingDecision.Value.result == Result.fold;
+        if (pendingCards.HasValue && (!folded || revealOnFold))
+        {
+            var (myCard, oppCard) = pendingCards.Value;
+
+            SetMessage("PRIORITY CHECK", normalColor);
+            if (seatBoard != null)
+            {
+                seatBoard.PlayReveal(myCard, oppCard);
+                while (seatBoard.IsRolling) yield return null;      // 보드가 멈출 때까지
+            }
+            else yield return new WaitForSeconds(0.8f);
+
+            // [원래] SetMessage($"YOU {myCard}   :   OPPONENT {oppCard}", normalColor);
+            // [변경] 숫자는 SeatBoard에서만 공개한다. 홀로그램은 안내 문구만
+            Play(sndReveal);
+            yield return new WaitForSeconds(1.0f);
+        }
+        // ===== [추가] 끝 =====
 
         // 2) 누를 사람 공개
         if (pendingDecision.HasValue)
@@ -667,18 +800,29 @@ public class CenterHologram : ClientUIBase
                 // 누르는 사람 자리 = 내가 누르면 내 자리, 아니면 상대 자리 (양쪽 화면에서 같은 쪽이 된다)
                 int me = client.myIndex.Value;
                 presserSeat = myTurn ? me : 1 - me;
-                SetMessage(myTurn ? "YOU CONTROL THE EJECTION" : "OPPONENT CONTROLS THE EJECTION", warnColor);
+                // [원래] SetMessage(myTurn ? "YOU CONTROL THE EJECTION" : "OPPONENT CONTROLS THE EJECTION", warnColor);
+                SetMessage(myTurn ? youPressText : oppPressText, warnColor);   // [변경] 더 알아보기 쉽게
+                ShowPresserMarker(presserSeat);                                 // [추가] 누를 사람 자리 표시
+                StartButtonBlink(presserSeat);                                  // [추가] 그 자리 버튼 빨간불 깜빡
             }
             yield return new WaitForSeconds(1.2f);
         }
 
         pendingReveal = null;
         pendingDecision = null;
+        pendingCards = null;                                    // [추가]
+
+        // [추가] OVERLOAD로 올려 보여줬는데 아무도 안 누르는 라운드(FOLD/동점)면 원래 확률로 되돌린다
+        if (overloadShown && presserSeat < 0)
+            ShowPer(shownPer, normalColor);
+        overloadShown = false;
     }
 
     /// <summary>약 4초: 버튼 눌림 → 서스펜스 → 사출 or 생존 → 확률 변동</summary>
     IEnumerator ResultRoutine()
     {
+        StopButtonBlink();                                      // [추가] 버튼이 눌렸으니 빨간불 끄기
+
         // 1) 누른 사람 자리의 버튼이 눌린다
         // [변경] 누른 사람 우주인이 버튼을 누르는 동작을 먼저 시작하고,
         //        손가락이 닿는 시점(buttonDelay)에 그 자리 버튼이 눌린다
@@ -689,7 +833,7 @@ public class CenterHologram : ClientUIBase
             TriggerLater(pressButtonAnimators[presserSeat], pressTrigger, buttonDelay);
 
         SetMessage("EJECTION SYSTEM CHARGING...", warnColor);
-        Play(chargeClip);
+        Play(sndCharge);
         yield return new WaitForSeconds(1.5f);
 
         // 2) 사고 여부 공개
@@ -699,14 +843,24 @@ public class CenterHologram : ClientUIBase
 
         if (outed)
         {
-            Play(ejectClip);
+            // ===== [추가] 사이렌: 불 켜지고 사이렌이 울린 채로 잠깐 버틴 뒤 발사 =====
+            SirenOn();
+            if (sirenLeadTime > 0f)
+            {
+                SetMessage("WARNING : EJECTION IMMINENT", warnColor);
+                yield return new WaitForSeconds(sirenLeadTime);
+                SetMessage("EJECTION SYSTEM ACTIVATED", warnColor);
+            }
+            // ===== [추가] 끝 =====
+
+            Play(sndEject);
             // [원래] Eject(presserSeat);                        // 누른 사람이 사출된다
             if (flyWithChair) StartEjectFlight(presserSeat);    // [변경] 의자째 위로 + 고개 쳐짐
             else { OpenHatch(presserSeat); Eject(presserSeat); }   // [변경] 체크 끄면 예전 더미 방식 (+ 천장 문)
         }
         else
         {
-            Play(safeClip);
+            Play(sndSafe);
         }
         yield return new WaitForSeconds(1.0f);
 
@@ -772,6 +926,17 @@ public class CenterHologram : ClientUIBase
         hiddenModels.Clear();
 
         presserSeat = -1;
+        ShowPresserMarker(-1);                              // [추가] 누를 차례 표시 끄기
+        StopButtonBlink();                                  // [추가] 버튼 빨간불 끄기
+        SirenOff();                                         // [추가] 사이렌 끄기
+    }
+
+    /// <summary>[추가] 그 자리의 '누를 차례' 표시만 켜고 나머지는 끈다 (-1이면 전부 끔)</summary>
+    void ShowPresserMarker(int seat)
+    {
+        if (presserMarkers == null) return;
+        for (int i = 0; i < presserMarkers.Length; i++)
+            if (presserMarkers[i] != null) presserMarkers[i].SetActive(i == seat);
     }
 
     // ===== [추가] 의자째 사출 =====
@@ -783,11 +948,12 @@ public class CenterHologram : ClientUIBase
     /// <summary>그 자리의 플레이어와 의자를 같이 위로 날린다</summary>
     void StartEjectFlight(int seat)
     {
+        Log($"사출 시작 요청: 자리 {seat}");                 // [추가] 로그
         if (seat < 0) return;
         StopEjectFlight();                                  // 혹시 이전 것이 남아 있으면 먼저 되돌림
 
         GameClient target = FindClientBySeat(seat);
-        if (target == null) return;
+        if (target == null) { Log($"의자째 사출 실패: 자리 {seat} 플레이어를 못 찾음"); return; }   // [추가] 로그
 
         flownClient = target;
         flownChair = (chairs != null && seat < chairs.Length) ? chairs[seat] : null;
@@ -795,7 +961,14 @@ public class CenterHologram : ClientUIBase
         {
             chairStartPos = flownChair.position;
             chairStartRot = flownChair.rotation;
+
+            // [추가] Static으로 체크된 의자는 실행 중에 움직여도 화면에 안 움직인다 (Static Batching)
+            if (flownChair.gameObject.isStatic)
+                Debug.LogWarning($"[CenterHologram] 의자 '{flownChair.name}'가 Static이라 안 움직여 보일 수 있음 → Inspector 오른쪽 위 Static 체크 해제");
         }
+        else Log($"의자 없음: Chairs[{seat}] 칸이 비어 있음 → 플레이어만 날아감");   // [추가]
+
+        flownSeat = seat;                                   // [추가] 불꽃 파티클용
 
         // ★ 중요: HeadLookSync는 매 프레임(LateUpdate) 머리 본 회전을 덮어쓴다.
         //   켜둔 채로 두면 고개 쳐짐 애니메이션의 머리 움직임이 지워진다 → 잠깐 끈다.
@@ -837,6 +1010,7 @@ public class CenterHologram : ClientUIBase
 
         // 2) 발사 + 고개 쳐짐
         TriggerLater(flownAnim, slumpTrigger, slumpDelay);
+        PlayThruster(flownSeat);                            // [추가] 의자 밑 불꽃 분사
 
         t = 0f;
         while (t < flyTime)
@@ -878,6 +1052,8 @@ public class CenterHologram : ClientUIBase
     void StopEjectFlight()
     {
         if (flight != null) { StopCoroutine(flight); flight = null; }
+        StopThrusters();                                    // [추가] 불꽃 끄기
+        flownSeat = -1;
 
         if (flownChair != null)
         {
@@ -924,6 +1100,30 @@ public class CenterHologram : ClientUIBase
             a.Update(0f);
         }
     }
+
+    // ===== [추가] 의자 밑 불꽃 파티클 =====
+    void PlayThruster(int seat)
+    {
+        if (thrusterFx == null || seat < 0 || seat >= thrusterFx.Length)
+        {
+            Log($"불꽃 없음: Thruster Fx 칸 개수({(thrusterFx == null ? 0 : thrusterFx.Length)})가 모자라거나 자리({seat})가 이상함");
+            return;
+        }
+        var fx = thrusterFx[seat];
+        if (fx == null) { Log($"불꽃 없음: Thruster Fx[{seat}] 칸이 비어 있음"); return; }
+        if (!fx.gameObject.activeSelf) fx.gameObject.SetActive(true);
+        fx.Clear(true);
+        fx.Play(true);                                      // true = 자식 파티클(연기, 불씨 등)도 같이
+        Log($"불꽃: 자리 {seat}");
+    }
+
+    void StopThrusters()
+    {
+        if (thrusterFx == null) return;
+        foreach (var fx in thrusterFx)
+            if (fx != null) fx.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+    }
+    // ===== [추가] 끝 =====
 
     static void SetRenderersOf(Transform root, bool on)
     {
@@ -975,11 +1175,102 @@ public class CenterHologram : ClientUIBase
     // [추가] 확률 표시 (글자 + 색)
     void ShowPer(int per, Color c)
     {
+        shownPer = per;                                     // [추가] 지금 화면의 기본 확률 기억 (OVERLOAD 계산용)
         SetTexts(perTexts, $"{per}%");
+        // [원래] if (perTexts == null) return;
+        // [원래] foreach (var t in perTexts)
+        // [원래]     if (t != null) t.color = c;
+        SetPerColor(c);                                     // [변경]
+    }
+
+    // [추가]
+    void SetPerColor(Color c)
+    {
         if (perTexts == null) return;
         foreach (var t in perTexts)
             if (t != null) t.color = c;
     }
+
+    // ===== [추가] 사출 사이렌 =====
+    void SirenOn()
+    {
+        if (sirenOn) return;
+        sirenOn = true;
+
+        if (sirenObjects != null)
+            foreach (var o in sirenObjects) if (o != null) o.SetActive(true);
+
+        // [원래] if (sirenSource != null && sirenClip != null)
+        // [원래] { sirenSource.clip = sirenClip; sirenSource.loop = true; sirenSource.Play(); }
+        SoundManager.PlayLoop(sndSiren);                    // [변경] 끌 때까지 반복
+
+        if (sirenSpinSpeed != 0f)
+            sirenSpinRoutine = StartCoroutine(SirenSpin());
+
+        Log("사이렌 ON");
+    }
+
+    IEnumerator SirenSpin()
+    {
+        while (true)
+        {
+            foreach (var o in sirenObjects)
+                if (o != null) o.transform.Rotate(0f, sirenSpinSpeed * Time.deltaTime, 0f, Space.Self);
+            yield return null;
+        }
+    }
+
+    void SirenOff()
+    {
+        if (sirenSpinRoutine != null) { StopCoroutine(sirenSpinRoutine); sirenSpinRoutine = null; }
+
+        if (sirenObjects != null)
+            foreach (var o in sirenObjects) if (o != null) o.SetActive(false);
+
+        // [원래] if (sirenSource != null && sirenSource.isPlaying) sirenSource.Stop();
+        SoundManager.StopLoop(sndSiren);                    // [변경]
+
+        if (sirenOn) Log("사이렌 OFF");
+        sirenOn = false;
+    }
+    // ===== [추가] 끝 =====
+
+    // ===== [추가] 누를 사람 버튼의 빨간불 깜빡임 =====
+    void StartButtonBlink(int seat)
+    {
+        StopButtonBlink();
+        if (pressButtonLights == null || seat < 0 || seat >= pressButtonLights.Length) { Log($"빨간불: 자리 {seat} 없음"); return; }
+        Light l = pressButtonLights[seat];
+        if (l == null) { Log($"빨간불: Press Button Lights[{seat}] 비어 있음"); return; }
+        blinkRoutine = StartCoroutine(BlinkRoutine(l));
+    }
+
+    IEnumerator BlinkRoutine(Light l)
+    {
+        blinkingLight = l;
+        l.color = blinkColor;
+        if (!l.gameObject.activeSelf) l.gameObject.SetActive(true);   // [추가] 오브젝트째 꺼 둔 경우도 켜서 깜빡이게
+        Log($"버튼 빨간불 깜빡 시작: {l.name}");
+        while (true)
+        {
+            l.enabled = true;
+            yield return new WaitForSeconds(blinkOnTime);
+            l.enabled = false;
+            yield return new WaitForSeconds(blinkOffTime);
+        }
+    }
+
+    void StopButtonBlink()
+    {
+        if (blinkRoutine != null) { StopCoroutine(blinkRoutine); blinkRoutine = null; }
+        if (blinkingLight != null) blinkingLight.enabled = false;
+        blinkingLight = null;
+
+        // 혹시 켜진 채로 남은 불도 다 끈다
+        if (pressButtonLights != null)
+            foreach (var l in pressButtonLights) if (l != null) l.enabled = false;
+    }
+    // ===== [추가] 끝 =====
 
     // [추가]
     static string ChoiceLabel(Choice c) =>
@@ -1008,22 +1299,25 @@ public class CenterHologram : ClientUIBase
 
     // [추가] 사운드가 비어 있으면 조용히 넘어간다
     // [추가] delay초 뒤에 소리 (0이면 바로)
-    void PlayLater(AudioClip clip, float delay)
+    // [변경] delay초 뒤에 소리 (0이면 바로) — 클립 대신 SoundManager id
+    void PlayLater(string id, float delay)
     {
-        if (clip == null) return;
-        if (delay <= 0f) { Play(clip); return; }
-        StartCoroutine(PlayAfter(clip, delay));
+        if (string.IsNullOrEmpty(id)) return;
+        if (delay <= 0f) { Play(id); return; }
+        StartCoroutine(PlayAfter(id, delay));
     }
 
-    IEnumerator PlayAfter(AudioClip clip, float delay)
+    IEnumerator PlayAfter(string id, float delay)
     {
         yield return new WaitForSeconds(delay);
-        Play(clip);
+        Play(id);
     }
 
-    void Play(AudioClip clip)
+    // [원래] void Play(AudioClip clip) { if (sfx != null && clip != null) sfx.PlayOneShot(clip); }
+    // [변경] 모든 소리는 SoundManager로
+    void Play(string id)
     {
-        if (sfx != null && clip != null) sfx.PlayOneShot(clip);
+        if (!string.IsNullOrEmpty(id)) SoundManager.Play(id);
     }
 
     // [추가]

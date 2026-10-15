@@ -56,19 +56,29 @@ public class SeatBoard : ClientUIBase
     public Color rollingColor = new Color(0.6f, 0.75f, 0.85f);
     [Tooltip("상대 숫자가 확정될 때 색 (강조)")]
     public Color revealColor = new Color(1f, 0.85f, 0.3f);
+    [Tooltip("[추가] 카드 공개 때 낮은 쪽(버튼을 눌러야 하는 쪽) 숫자 색")]
+    public Color loseColor = new Color(1f, 0.3f, 0.25f);
+    [Tooltip("[추가] 카드 공개 때 내 칸이 도는 시간(초)")]
+    public float revealRollTime = 0.8f;
     [Tooltip("멈출 때 '딱' 튕기는 크기. 0이면 안 튕김")]
     public float landPunch = 0.3f;
 
-    [Header("[추가] 사운드 — 없으면 비워두기")]
-    public AudioSource sfx;
-    public AudioClip tickClip;      // 숫자 바뀔 때 '틱'
-    public AudioClip lockClip;      // 내 칸 멈출 때 '철컥'
-    public AudioClip landClip;      // 상대 칸 확정 '딱'
+    [Header("[변경] 사운드 id (SoundManager) — 비우면 소리 없음")]
+    // [원래] public AudioSource sfx;
+    // [원래] public AudioClip tickClip;      // 숫자 바뀔 때 '틱'
+    // [원래] public AudioClip lockClip;      // 내 칸 멈출 때 '철컥'
+    // [원래] public AudioClip landClip;      // 상대 칸 확정 '딱'
+    // [변경] 소리는 SoundManager가 관리. SoundManager 'Sounds' 목록의 id만 적는다
+    public string tickClip = "slot_tick";   // 숫자 바뀔 때 '틱'
+    public string lockClip = "slot_lock";   // 내 칸 멈출 때 '철컥'
+    public string landClip = "slot_land";   // 숫자 확정 '딱'
     // ===== [추가] 끝 =====
 
     int shownCard = 0;      // 마지막으로 받은 상대 카드
     // [추가]
     int pendingCard = 0;            // 받았지만 아직 공개 안 한 상대 카드
+    int? revealedMine;              // [추가] 공개된 내 숫자 (null이면 아직 ??)
+    int pendingMine = -1;           // [추가] 공개 연출 중인 내 숫자
     Coroutine rollRoutine;
 
     /// <summary>[추가] 지금 슬롯머신이 도는 중인가 (CenterHologram이 기다릴 때 읽는다)</summary>
@@ -114,7 +124,12 @@ public class SeatBoard : ClientUIBase
     void HandlePhase(GamePhase phase)
     {
         // [추가] RoundStart가 아닌데 아직 돌고 있으면 끊는다 (연출 시간 초과 등)
-        if (phase != GamePhase.RoundStart) StopRoll();
+        // [원래] if (phase != GamePhase.RoundStart) StopRoll();
+        if (phase != GamePhase.RoundStart && phase != GamePhase.Open) StopRoll();   // [변경] Open엔 카드 공개가 돈다
+
+        // [추가] 새 라운드 / 대기면 공개했던 내 숫자를 다시 숨긴다
+        if (phase == GamePhase.RoundStart || phase == GamePhase.waiting)
+            revealedMine = null;
 
         if (phase == GamePhase.waiting || phase == GamePhase.GameOver)
             DrawReady(client.isReady, client.opponentReady, client.opponentPresent);
@@ -218,7 +233,52 @@ public class SeatBoard : ClientUIBase
         StopCoroutine(rollRoutine);
         rollRoutine = null;
         shownCard = pendingCard;
+        if (pendingMine > 0) revealedMine = pendingMine;    // [추가] 공개 도중 끊겨도 결과는 맞춰 둔다
     }
+
+    // ===== [추가] 카드 공개 (Open 연출에서, 버튼 누르기 전) =====
+
+    /// <summary>
+    /// CenterHologram의 Open 연출에서 부른다.
+    /// 내 칸 "??"가 잠깐 돌다가 내 진짜 숫자로 딱 멈추고, 높은 쪽 / 낮은 쪽(누를 사람) 색으로 칠한다.
+    /// </summary>
+    public void PlayReveal(int myCard, int oppCard)
+    {
+        StopRoll();
+        pendingMine = myCard;
+        pendingCard = oppCard;
+        shownCard = oppCard;
+        if (!isActiveAndEnabled) { revealedMine = myCard; DrawCards(oppCard); return; }
+        rollRoutine = StartCoroutine(RevealRoutine(myCard, oppCard));
+    }
+
+    IEnumerator RevealRoutine(int myCard, int oppCard)
+    {
+        // 상대 칸은 그대로 두고 내 칸만 돈다 (슬롯머신과 같은 감속)
+        float t = 0f;
+        int last = 0;
+        while (t < revealRollTime)
+        {
+            float k = t / revealRollTime;
+            float interval = Mathf.Lerp(fastInterval, slowInterval, k * k);
+            last = RandomExcept(last);
+            SetMine(last.ToString(), rollingColor);
+            Play(tickClip);
+            yield return new WaitForSeconds(interval);
+            t += interval;
+        }
+
+        // 딱! 내 숫자 공개
+        revealedMine = myCard;
+        pendingMine = -1;
+        DrawCards(oppCard);
+        Punch(MyTexts);
+        Play(landClip);
+
+        yield return new WaitForSeconds(0.3f);
+        rollRoutine = null;
+    }
+    // ===== [추가] 끝 =====
 
     // 내 칸 / 상대 칸 배열 (내가 P1이면 p1Texts가 내 칸)
     TextMeshPro[] MyTexts => IAmP1 ? p1Texts : p2Texts;
@@ -245,9 +305,10 @@ public class SeatBoard : ClientUIBase
         }
     }
 
-    void Play(AudioClip clip)
+    // [원래] void Play(AudioClip clip) { if (sfx != null && clip != null) sfx.PlayOneShot(clip); }
+    void Play(string id)                                    // [변경] SoundManager로
     {
-        if (sfx != null && clip != null) sfx.PlayOneShot(clip);
+        if (!string.IsNullOrEmpty(id)) SoundManager.Play(id);
     }
     // ===== [추가] 끝 =====
 
@@ -256,11 +317,26 @@ public class SeatBoard : ClientUIBase
 
     void DrawCards(int opponentCard)
     {
-        string mine = hiddenMark;
+        // [원래] string mine = hiddenMark;
+        // [원래] string theirs = opponentCard.ToString();
+        // [원래] Set(IAmP1 ? mine : theirs, IAmP1 ? theirs : mine,
+        // [원래]     normalColor, normalColor);
+
+        // [변경] 내 숫자가 공개됐으면 숫자로, 아니면 ??
+        string mine = revealedMine.HasValue ? revealedMine.Value.ToString() : hiddenMark;
         string theirs = opponentCard.ToString();
 
+        Color mineColor = normalColor, theirsColor = normalColor;
+        if (revealedMine.HasValue)
+        {
+            // 높은 쪽 = 금색(살아남음), 낮은 쪽 = 빨강(버튼을 누름), 같으면 그대로
+            int m = revealedMine.Value;
+            if (m > opponentCard) { mineColor = revealColor; theirsColor = loseColor; }
+            else if (m < opponentCard) { mineColor = loseColor; theirsColor = revealColor; }
+        }
+
         Set(IAmP1 ? mine : theirs, IAmP1 ? theirs : mine,
-            normalColor, normalColor);
+            IAmP1 ? mineColor : theirsColor, IAmP1 ? theirsColor : mineColor);
     }
 
     void DrawReady(bool myReady, bool oppReady, bool oppPresent)
