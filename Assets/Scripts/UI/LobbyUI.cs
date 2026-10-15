@@ -8,7 +8,7 @@ public class LobbyUI : MonoBehaviour
     [SerializeField] GameObject InGameUI;
     [SerializeField] Button CreateBtn;
     [SerializeField] Button JoinBtn;
-    public Text roomCode;
+    [SerializeField] Button LeaveBtn;
     public TMP_InputField joinCode;
 
     [Header("알림 팝업 (방 가입 실패 / 연결 끊김)")]
@@ -29,6 +29,7 @@ public class LobbyUI : MonoBehaviour
             relay.OnRoomQuited += HandleRoomQuited;
         }
 
+        if (LeaveBtn != null) LeaveBtn.onClick.AddListener(ExitBtn);
         if (noticeOkBtn != null) noticeOkBtn.onClick.AddListener(CloseNotice);
         CloseNotice();
     }
@@ -71,6 +72,11 @@ public class LobbyUI : MonoBehaviour
 
     // ────────────────────────── 버튼 ──────────────────────────
 
+    public void ExitBtn()
+    {
+        Application.Quit();
+    }
+
     public async void JoinRoom()
     {
         string code = joinCode != null ? joinCode.text.Trim() : "";
@@ -91,10 +97,6 @@ public class LobbyUI : MonoBehaviour
         // [수정] CreateRoom을 한 번만 부른다 (두 번째 호출은 이미 방이 있어서 null을 돌려줬다)
         string code = await RelayManager.Instance.CreateRoom();
         if (code == null) return;                       // 실패 알림은 OnRoomConnectFailed가 처리
-
-        Debug.Log("\"Room Code:\" " + code);
-        if (roomCode != null)
-            roomCode.text = "Room Code:" + code;
     }
 
 
@@ -117,6 +119,8 @@ public class LobbyUI : MonoBehaviour
         }
         else
         {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
             CreateBtn.interactable = true;
             JoinBtn.interactable = true;
             if (LobbyUi != null)

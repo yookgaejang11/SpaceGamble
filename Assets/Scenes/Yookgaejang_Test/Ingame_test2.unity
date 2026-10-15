@@ -2422,9 +2422,8 @@ MonoBehaviour:
   flashTime: 0.25
   canvasGroup: {fileID: 0}
   flickerCount: 2
-  sfx: {fileID: 0}
-  onClip: {fileID: 0}
-  offClip: {fileID: 0}
+  onClip: 
+  offClip: 
 --- !u!1001 &268764439
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14326,7 +14325,7 @@ MonoBehaviour:
   panel: {fileID: 1464626523}
   resumeButton: {fileID: 1099289524}
   exitButton: {fileID: 1369985341}
-  AskUI: {fileID: 0}
+  AskUI: {fileID: 1575275233}
   toggleKey: 27
   exitReason: "\uBC29\uC744 \uB098\uAC14\uC2B5\uB2C8\uB2E4."
 --- !u!114 &1312250608
@@ -15245,6 +15244,7 @@ MonoBehaviour:
   astronautPullTrigger: Pull
   astronautPressTrigger: Press
   leverDelay: 0
+  leverSoundDelay: 1.1
   buttonDelay: 0
   alarmAnimator: {fileID: 0}
   alarmTrigger: Alarm
@@ -15295,14 +15295,49 @@ MonoBehaviour:
   hatchOpenTime: 0.5
   slumpTrigger: Slump
   slumpDelay: 0.15
-  sfx: {fileID: 0}
-  leverClip: {fileID: 0}
-  scrambleTickClip: {fileID: 0}
-  revealClip: {fileID: 0}
-  overloadClip: {fileID: 0}
-  chargeClip: {fileID: 0}
-  ejectClip: {fileID: 0}
-  safeClip: {fileID: 0}
+  thrusterFx:
+  - {fileID: 0}
+  - {fileID: 0}
+  seatBoard: {fileID: 0}
+  revealOnFold: 0
+  presserMarkers:
+  - {fileID: 0}
+  - {fileID: 0}
+  youPressText: YOU MUST PRESS THE BUTTON
+  oppPressText: OPPONENT MUST PRESS THE BUTTON
+  pressNowText: PRESS THE BUTTON
+  waitPressText: WAITING FOR OPPONENT
+  pressButtonLights:
+  - {fileID: 0}
+  - {fileID: 0}
+  blinkColor: {r: 1, g: 0, b: 0, a: 1}
+  blinkOnTime: 0.25
+  blinkOffTime: 0.25
+  overloadCountTime: 0.6
+  sirenObjects:
+  - {fileID: 0}
+  - {fileID: 0}
+  sndSiren: siren
+  sirenLeadTime: 2
+  sirenTailTime: 1
+  sirenSpinSpeed: 0
+  rollStartDelay: 1.65
+  useLeverEvent: 1
+  rollAfterLever: 0.6
+  leverEventTimeout: 3
+  endTimeline: {fileID: 0}
+  beforeTimelineDelay: 0.3
+  endGameRoot: {fileID: 0}
+  endGameTexts: []
+  winText: SURVIVOR CONFIRMED
+  loseText: CREW MEMBER EJECTED
+  sndLever: lever
+  sndScrambleTick: scramble_tick
+  sndReveal: reveal
+  sndOverload: overload
+  sndCharge: charge
+  sndEject: eject
+  sndSafe: safe
   debugLog: 0
 --- !u!1 &1397987877
 GameObject:
@@ -15338,7 +15373,7 @@ MonoBehaviour:
   InGameUI: {fileID: 1312250605}
   CreateBtn: {fileID: 2076214944}
   JoinBtn: {fileID: 1648237590}
-  roomCode: {fileID: 0}
+  LeaveBtn: {fileID: 0}
   joinCode: {fileID: 1944321341}
   noticePanel: {fileID: 100110053}
   noticeTitle: {fileID: 2056291327}
@@ -15369,6 +15404,18 @@ MonoBehaviour:
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   readyColor: {r: 0.5, g: 1, b: 0.6, a: 1}
   dimColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  rollTime: 1.4
+  myStopRatio: 0.7
+  fastInterval: 0.04
+  slowInterval: 0.2
+  rollingColor: {r: 0.6, g: 0.75, b: 0.85, a: 1}
+  revealColor: {r: 1, g: 0.85, b: 0.3, a: 1}
+  loseColor: {r: 1, g: 0.3, b: 0.25, a: 1}
+  revealRollTime: 0.8
+  landPunch: 0.3
+  tickClip: slot_tick
+  lockClip: slot_lock
+  landClip: slot_land
 --- !u!4 &1397987880
 Transform:
   m_ObjectHideFlags: 0
@@ -17896,9 +17943,8 @@ MonoBehaviour:
   flashTime: 0.25
   canvasGroup: {fileID: 0}
   flickerCount: 2
-  sfx: {fileID: 0}
-  onClip: {fileID: 0}
-  offClip: {fileID: 0}
+  onClip: 
+  offClip: 
 --- !u!1 &1591610864
 GameObject:
   m_ObjectHideFlags: 0
