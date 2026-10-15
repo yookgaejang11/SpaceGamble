@@ -1003,7 +1003,6 @@ GameObject:
   - component: {fileID: 8078661612358404207}
   - component: {fileID: 436188469027445474}
   - component: {fileID: 7411681088408686186}
-  - component: {fileID: 6162957772407020405}
   m_Layer: 0
   m_Name: GameClient
   m_TagString: Untagged
@@ -1101,28 +1100,6 @@ MonoBehaviour:
   mouseSensitivity: 2
   lockCursor: 1
   smooth: 12
---- !u!114 &6162957772407020405
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3660493822148365431}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 856488192dc07ac4cb4e2b582e4d1b63, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  seatIndex: 0
-  hitCollider: {fileID: 0}
-  visualRoot: {fileID: 0}
-  hoverText: {fileID: 0}
-  hoverMessage: PRESS
-  maxDistance: 6
-  hitMask:
-    serializedVersion: 2
-    m_Bits: 64
-  cam: {fileID: 7668078321515431567}
 --- !u!1 &3686129943443869922
 GameObject:
   m_ObjectHideFlags: 0
@@ -1197,6 +1174,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8440457813959782585}
   - component: {fileID: 7811840720508066897}
+  - component: {fileID: 2755509310683750142}
   m_Layer: 0
   m_Name: astronaut_1 (1)
   m_TagString: Untagged
@@ -1243,6 +1221,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &2755509310683750142
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3804099118614582287}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b53fb0d9c700cdd44be05dd1b59ae655, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  debugLog: 0
+  seatOverride: -1
 --- !u!1 &3945728339880009605
 GameObject:
   m_ObjectHideFlags: 0
@@ -2580,7 +2572,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
