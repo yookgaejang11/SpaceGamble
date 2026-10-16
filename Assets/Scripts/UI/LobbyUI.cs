@@ -47,8 +47,6 @@ public class LobbyUI : MonoBehaviour
     }
 
 
-    // ────────────────────────── 알림 ──────────────────────────
-
     // 방 만들기 / 가입 실패
     void HandleConnectFailed(string reason) => ShowNotice("Connection Failed", reason);
 
@@ -74,7 +72,6 @@ public class LobbyUI : MonoBehaviour
     }
 
 
-    // ────────────────────────── 버튼 ──────────────────────────
 
     public void ExitBtn()
     {

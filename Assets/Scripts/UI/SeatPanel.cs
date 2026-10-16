@@ -42,9 +42,6 @@ public class SeatPanel : ClientUIBase
 
     bool IsMine => client != null && client.myIndex.Value == seatIndex;
 
-
-    // ────────────────────────── 버튼 연결 ──────────────────────────
-
     protected override void OnEnable()
     {
         base.OnEnable();
@@ -88,16 +85,11 @@ public class SeatPanel : ClientUIBase
         else crt.Hide();        // 이미 꺼져 있으면 CrtPopup이 알아서 무시한다
     }
 
-    // 선택 클릭은 버튼마다 붙인 ChoiceTarget.cs가 조준점 레이캐스트로 처리한다
-    // (커서가 잠겨 있어서 UI Button의 onClick은 1인칭 중에는 불리지 않는다)
 
     // 내 패널이 아니면 눌려도 아무 일도 하지 않는다 (안전장치)
     void OnGo() { if (IsMine) client.RequestGo(); }
     void OnFold() { if (IsMine) client.RequestFold(); }
     void OnOverload() { if (IsMine) client.RequestOverload(); }
-
-
-    // ────────────────────────── 구독 ──────────────────────────
 
     protected override void Subscribe()
     {
@@ -125,8 +117,6 @@ public class SeatPanel : ClientUIBase
         UpdateHighlight(client.myChoice);
     }
 
-
-    // ────────────────────────── 페이즈 ──────────────────────────
 
     void HandlePhase(GamePhase phase)
     {
@@ -183,8 +173,6 @@ public class SeatPanel : ClientUIBase
     }
 
 
-    // ────────────────────────── 값 ──────────────────────────
-
     void HandleTime(float remain)
     {
         if (!IsMine || timerText == null) return;
@@ -231,8 +219,6 @@ public class SeatPanel : ClientUIBase
             SetChoice(present ? "" : emptyMark, dimColor);
     }
 
-
-    // ────────────────────────── 헬퍼 ──────────────────────────
 
     void ShowChoice(Choice c)
     {

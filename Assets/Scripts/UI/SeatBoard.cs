@@ -273,8 +273,6 @@ public class SeatBoard : ClientUIBase
     }
 
 
-    // ────────────────────────── 그리기 ──────────────────────────
-
     void DrawCards(int opponentCard)
     {
         // 내 숫자가 공개됐으면 숫자로, 아니면 ??

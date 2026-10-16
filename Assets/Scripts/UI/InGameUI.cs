@@ -35,8 +35,6 @@ public class InGameUI : MonoBehaviour
     GameClient client;
 
 
-    // ────────────────────────── 연결 ──────────────────────────
-
     void OnEnable()
     {
         GameClient.OnLocalClientReady += Bind;
@@ -109,8 +107,6 @@ public class InGameUI : MonoBehaviour
     }
 
 
-    // ────────────────────────── 페이즈 ──────────────────────────
-
     void HandlePhase(GamePhase phase)
     {
         bool waiting = (phase == GamePhase.waiting || phase == GamePhase.GameOver);
@@ -160,9 +156,6 @@ public class InGameUI : MonoBehaviour
         presentation = null;
     }
 
-
-    // ────────────────────────── 값 갱신 ──────────────────────────
-
     void HandleRoomCode(string code) => roomCodeText.text = $"CODE  {code}";
 
     void HandleRound(int round) => roundText.text = $"ROUND {round}";
@@ -193,9 +186,6 @@ public class InGameUI : MonoBehaviour
         foldHighlight.enabled = (c == Choice.Fold);
         overloadHighlight.enabled = (c == Choice.Overload);
     }
-
-
-    // ────────────────────────── 라운드 결과 ──────────────────────────
 
     void HandleChoiceRevealed(Choice mine, Choice opponent)
     {

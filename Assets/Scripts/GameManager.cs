@@ -202,8 +202,6 @@ public class GameManager : NetworkBehaviour
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
     }
 
-    // ────────────────────────── 접속 / 끊김 ──────────────────────────
-
     void OnClientConnected(ulong clientId)
     {
         if (!NetworkManager.Singleton.ConnectedClients.ContainsKey(clientId)) return;
@@ -243,8 +241,6 @@ public class GameManager : NetworkBehaviour
         ChangePhase(GamePhase.waiting);
     }
 
-
-    // ────────────────────────── 게임 흐름 ──────────────────────────
 
     public void StartGame()
     {
@@ -374,9 +370,6 @@ public class GameManager : NetworkBehaviour
             EndTalk();
     }
 
-
-    // ────────────────────────── 클라이언트 요청 접수 ──────────────────────────
-
     public void RequestGo(int playerIndex)
     {
         if (curPhase != GamePhase.talkTime) return;
@@ -448,10 +441,6 @@ public class GameManager : NetworkBehaviour
             AfterPresentationEnd();
     }
 
-    /// <summary>
-    /// 연출이 끝났을 때(양쪽 신호) 또는 타임아웃일 때 호출된다.
-    /// Invoke로도 불리므로 파라미터가 없어야 한다.
-    /// </summary>
     void AfterPresentationEnd()
     {
         CancelInvoke(nameof(AfterPresentationEnd));

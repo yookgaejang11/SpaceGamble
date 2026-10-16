@@ -44,8 +44,6 @@ public class GameHud : MonoBehaviour
 
     static string GetCode()
         => (RelayManager.Instance != null) ? RelayManager.Instance.joinCode : null;
-
-    /// <summary>코드가 있고, 내 클라이언트가 있고, 페이즈가 waiting일 때만</summary>
     static bool ShouldShow(string code)
     {
         if (string.IsNullOrEmpty(code)) return false;

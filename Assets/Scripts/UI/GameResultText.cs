@@ -47,13 +47,10 @@ public class GameResultText : ClientUIBase
     }
 
 
-    // GameOver가 아닌 페이즈(재시작, 대기 등)에서는 숨긴다
     void HandlePhase(GamePhase phase)
     {
         if (phase != GamePhase.GameOver) Hide();
     }
-
-    // 처형 타임라인이 끝났다는 신호 (win = 내가 이겼나)
     void HandleEndGameReady(bool win)
     {
         if (client == null || client.curPhase != GamePhase.GameOver) return;

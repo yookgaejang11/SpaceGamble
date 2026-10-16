@@ -49,8 +49,6 @@ public class CrtPopup : MonoBehaviour
         captured = true;
     }
 
-    // ────────────────────────── 켜기 ──────────────────────────
-
     public void Show()
     {
         Capture();
@@ -87,8 +85,6 @@ public class CrtPopup : MonoBehaviour
             }
         }
     }
-
-    // ────────────────────────── 끄기 ──────────────────────────
 
     public void Hide()
     {
@@ -129,7 +125,6 @@ public class CrtPopup : MonoBehaviour
         ResetLook();
     }
 
-    // ────────────────────────── 헬퍼 ──────────────────────────
 
     void ResetLook()
     {

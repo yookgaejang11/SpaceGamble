@@ -32,7 +32,6 @@ public class PressTarget : ClientUIBase
     bool IsMine => client != null && client.myIndex.Value == seatIndex;
 
 
-    // ────────────────────────── 구독 ──────────────────────────
 
     protected override void Subscribe()
     {
@@ -61,8 +60,6 @@ public class PressTarget : ClientUIBase
         SetArmed(false);
     }
 
-
-    // ────────────────────────── 상태 ──────────────────────────
 
     void HandlePhase(GamePhase phase)
     {
@@ -107,8 +104,6 @@ public class PressTarget : ClientUIBase
         if (!on) SetHover(false);
     }
 
-
-    // ────────────────────────── 조준 / 클릭 ──────────────────────────
 
     void Update()
     {

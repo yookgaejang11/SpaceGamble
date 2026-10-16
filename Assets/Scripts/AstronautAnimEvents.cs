@@ -15,7 +15,6 @@ public class AstronautAnimEvents : MonoBehaviour
 
     GameClient owner;
 
-    /// <summary>애니메이션 이벤트가 부르는 함수. 이름을 바꾸면 클립 이벤트에서 다시 골라야 한다</summary>
     public void OnLeverPull()
     {
         int seat = seatOverride;

@@ -102,9 +102,6 @@ public class EmoteSync : NetworkBehaviour
         base.OnDestroy();
     }
 
-
-    // ────────────────────────── 입력 (내 것만) ──────────────────────────
-
     void Update()
     {
         // 연출 페이즈로 넘어가면 떠 있던 말풍선을 바로 치운다 (컷신 위에 둥둥 뜨지 않게)
@@ -145,7 +142,6 @@ public class EmoteSync : NetworkBehaviour
     }
 
 
-    // ────────────────────────── 네트워크 ──────────────────────────
 
     [Rpc(SendTo.Server)]
     void RequestEmoteRpc(int id)
@@ -172,8 +168,6 @@ public class EmoteSync : NetworkBehaviour
     }
 
 
-    // ────────────────────────── 음성 ──────────────────────────
-
     void PlayVoice(Emote e)
     {
         string id = !string.IsNullOrEmpty(e.voiceId) ? e.voiceId : sndEmote;
@@ -187,8 +181,6 @@ public class EmoteSync : NetworkBehaviour
         else SoundManager.Play(id);
     }
 
-
-    // ────────────────────────── 말풍선 ──────────────────────────
 
     void ShowBubble(Emote e)
     {
@@ -250,10 +242,6 @@ public class EmoteSync : NetworkBehaviour
         feedbackSeq.OnComplete(() => ownerFeedbackText.gameObject.SetActive(false));
     }
 
-
-    // ────────────────────────── 머리 따라가기 + 카메라 보기 ──────────────────────────
-
-    // 애니메이션이 머리를 움직인 뒤에 따라가야 하므로 LateUpdate
     void LateUpdate()
     {
         if (bubbleRoot != null && bubbleRoot.activeSelf) FollowHead();
@@ -270,7 +258,6 @@ public class EmoteSync : NetworkBehaviour
         if (c != null) t.rotation = Quaternion.LookRotation(t.position - c.transform.position, Vector3.up);
     }
 
-    /// <summary>지금 화면을 그리는 내 카메라 (내 플레이어 프리팹 안의 켜진 카메라 → Camera.main)</summary>
     Camera GetViewCamera()
     {
         if (viewCam != null && viewCam.isActiveAndEnabled) return viewCam;

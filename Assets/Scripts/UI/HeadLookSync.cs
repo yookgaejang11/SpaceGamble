@@ -3,7 +3,6 @@ using UnityEngine;
 
 public class HeadLookSync : NetworkBehaviour
 {
-    /// <summary>true면 커서가 풀려 있다 (UI 클릭용). false면 중앙 잠금 상태</summary>
     public static bool CursorFree { get; private set; }
 
     static bool lockEnabled = true;     // lockCursor 설정의 정적 복사본
@@ -61,7 +60,6 @@ public class HeadLookSync : NetworkBehaviour
         rule = GameManager.Instance != null ? GameManager.Instance.gameRule : null;
         animator = GetComponentInChildren<Animator>();
         if (head != null) headBaseLocal = head.localRotation;
-        // 내 것이 아닌 오브젝트의 카메라/오디오는 꺼야 한다
         if (!IsOwner)
         {
             if (ownerCamera != null) ownerCamera.enabled = false;
@@ -92,7 +90,6 @@ public class HeadLookSync : NetworkBehaviour
     {
         if (!IsOwner) return;
 
-        // 커서를 푼 동안(ESC 메뉴)은 시점을 돌리지 않는다
         if (CursorFree)
         {
             SendIfDue();

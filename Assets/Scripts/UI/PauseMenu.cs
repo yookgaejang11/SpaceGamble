@@ -58,8 +58,6 @@ public class PauseMenu : MonoBehaviour
     }
 
 
-    // ────────────────────────── 열기 / 닫기 ──────────────────────────
-
     public void Open()
     {
         if (IsOpen) return;
@@ -89,8 +87,6 @@ public class PauseMenu : MonoBehaviour
         Cursor.visible = true;
     }
 
-
-    // ────────────────────────── 나가기 ──────────────────────────
 
     void OnExit()
     {

@@ -29,7 +29,6 @@ public class ChoiceTarget : ClientUIBase
     bool hovering;
 
 
-    // ────────────────────────── 준비 ──────────────────────────
 
     void Awake()
     {
@@ -48,7 +47,6 @@ public class ChoiceTarget : ClientUIBase
     }
 
 
-    // ────────────────────────── 지금 누를 수 있나 ──────────────────────────
 
     bool IsMine => client != null && client.myIndex.Value == seatIndex;
 
@@ -59,7 +57,6 @@ public class ChoiceTarget : ClientUIBase
         && (choice != Choice.Fold || client.foldLeft > 0);
 
 
-    // ────────────────────────── 조준 / 클릭 ──────────────────────────
 
     void Update()
     {
@@ -87,7 +84,6 @@ public class ChoiceTarget : ClientUIBase
             case Choice.Fold: client.RequestFold(); break;
             case Choice.Overload: client.RequestOverload(); break;
         }
-        // 선택 강조는 SeatPanel이 OnMyChoiceChanged를 받아서 처리한다
     }
 
     /// <summary>
@@ -114,7 +110,6 @@ public class ChoiceTarget : ClientUIBase
         Camera c = GetAimCamera();
         if (c == null) return false;
 
-        // 커서가 잠겨 있으면 화면 정중앙(조준점), 풀려 있으면 마우스 위치
         Vector3 screenPoint = HeadLookSync.CursorFree
             ? Input.mousePosition
             : new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f);
@@ -125,7 +120,6 @@ public class ChoiceTarget : ClientUIBase
                              QueryTriggerInteraction.Collide))
             return false;
 
-        // 가장 먼저 맞은 게 이 버튼이어야 한다 (다른 버튼/물체에 가려지면 무시)
         return hit.collider == hitCollider;
     }
 

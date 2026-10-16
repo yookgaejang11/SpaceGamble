@@ -43,9 +43,6 @@ public class GameClient : NetworkBehaviour
 
     public RpcParams ToMe => RpcTarget.Single(OwnerClientId, RpcTargetUse.Temp);
 
-
-    // ────────────────────────── 생명주기 ──────────────────────────
-
     public override void OnNetworkSpawn()
     {
         gameManager = GameManager.Instance;
@@ -108,8 +105,6 @@ public class GameClient : NetworkBehaviour
         }
     }
 
-
-    // ────────────────────────── 서버 → 나 (타겟 RPC) ──────────────────────────
 
     [Rpc(SendTo.SpecifiedInParams)]
     public void ReceivePhaseRpc(GamePhase phase, RpcParams parms)
@@ -176,7 +171,6 @@ public class GameClient : NetworkBehaviour
         OnChoiceRevealed?.Invoke(mine, opponent);
     }
 
-    // 내 카드는 라운드 중엔 절대 안 온다. 선택이 끝나 공개되는 순간(EndTalk)에만 서버가 보내준다.
     [Rpc(SendTo.SpecifiedInParams)]
     public void ReceiveCardsRevealRpc(int mine, int opponent, RpcParams parms)
     {
@@ -207,8 +201,6 @@ public class GameClient : NetworkBehaviour
         OnGameWin?.Invoke(isWin);
     }
 
-
-    // ────────────────────────── 나 → 서버 (UI가 호출) ──────────────────────────
 
     public void RequestGo()
     {
