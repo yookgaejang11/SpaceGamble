@@ -464,6 +464,15 @@ public class GameManager : NetworkBehaviour
         }
     }
 
+    /// <summary>현재 사출 확률에 amount를 더한다 (0~100). 바뀐 값을 돌려준다. 게임 중이 아니면 -1</summary>
+    public int CheatAddOutPer(int amount)
+    {
+        if (!IsServer || session == null || session.isGameOver) return -1;
+        session.curOutPer = Math.Clamp(session.curOutPer + amount, 0, 100);
+        return session.curOutPer;
+    }
+    // ===== [추가] 끝 =====
+
     void BroadcastPresence()
     {
         if (clients[0] != null)
