@@ -19577,10 +19577,10 @@ MonoBehaviour:
   JoinBtn: {fileID: 1648237590}
   LeaveBtn: {fileID: 778576146}
   joinCode: {fileID: 1944321341}
-  noticePanel: {fileID: 0}
-  noticeTitle: {fileID: 0}
-  noticeMessage: {fileID: 0}
-  noticeOkBtn: {fileID: 0}
+  noticePanel: {fileID: 494947489}
+  noticeTitle: {fileID: 1016856806}
+  noticeMessage: {fileID: 1941851180}
+  noticeOkBtn: {fileID: 589185732}
 --- !u!114 &1397987879
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -53,7 +53,11 @@ public class LobbyUI : MonoBehaviour
     void HandleConnectFailed(string reason) => ShowNotice("Connection Failed", reason);
 
     // 호스트가 나가는 등 연결이 끊겨서 방에서 나가짐
-    void HandleRoomQuited(string reason) => ShowNotice("Connection Lost", reason);
+    void HandleRoomQuited(string reason)
+    {
+        if (string.IsNullOrEmpty(reason)) return;   // 직접 나간 경우엔 팝업 없음
+        ShowNotice("연결 종료", reason);
+    }
 
     void ShowNotice(string title, string message)
     {

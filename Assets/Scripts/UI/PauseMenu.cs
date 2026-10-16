@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Android;
 using UnityEngine.UI;
 
 public class PauseMenu : MonoBehaviour
@@ -17,7 +18,8 @@ public class PauseMenu : MonoBehaviour
 
     [Header("나가기")]
     [Tooltip("RelayManager.OnRoomQuited로 전달될 문구")]
-    public string exitReason = "방을 나갔습니다.";
+    public string exitReason = "";
+    
 
 
     void OnEnable()
@@ -95,6 +97,6 @@ public class PauseMenu : MonoBehaviour
         if (RelayManager.Instance == null) return;
         if (AskUI != null) AskUI.SetActive(false);
         ForceClose();
-        RelayManager.Instance.LeaveRoom(exitReason);
+        RelayManager.Instance.LeaveRoom(string.IsNullOrEmpty(exitReason) ? null : exitReason);
     }
 }
