@@ -1,13 +1,14 @@
 using System.Collections;
-using System.Collections.Generic;
+using System.Collections.Generic;   // 사출 더미 목록
 using TMPro;
 using UnityEngine;
-using UnityEngine.Playables;
+using UnityEngine.Playables;          // 게임 끝 타임라인 (PlayableDirector)
 
 public class CenterHologram : ClientUIBase
 {
     /// <summary>
     /// 처형 타임라인까지 다 끝나서 "이제 승패 문구를 띄워도 된다"는 신호 (true = 내가 이김).
+    /// GameResultText 같은 다른 스크립트가 이걸 듣고 EndGame 문구를 켠다.
     /// </summary>
     public static event System.Action<bool> EndGameReady;
 
@@ -35,8 +36,8 @@ public class CenterHologram : ClientUIBase
     public Animator[] pressButtonAnimators = new Animator[2];
     public string pressTrigger = "Press";
 
-    [Header("플레이어 애니메이션 (플레이어 프리팹 안의 Animator — 실행 중 자리 번호로 자동으로 찾음)")]
-    [Tooltip("체크하면 RoundStart에 양쪽 플레이어이 레버를 당기고, Result에 누른 사람이 버튼을 누른다")]
+    [Header("우주인 애니메이션 (플레이어 프리팹 안의 Animator — 실행 중 자리 번호로 자동으로 찾음)")]
+    [Tooltip("체크하면 RoundStart에 양쪽 우주인이 레버를 당기고, Result에 누른 사람이 버튼을 누른다")]
     public bool animateAstronaut = true;
     [Tooltip("astronaut_1 컨트롤러의 Trigger 이름 (lever_pull로 가는 조건)")]
     public string astronautPullTrigger = "Pull";
@@ -44,14 +45,14 @@ public class CenterHologram : ClientUIBase
     public string astronautPressTrigger = "Press";
 
     [Header("손이 닿는 타이밍 맞추기 (초)")]
-    [Tooltip("플레이어의 lever_pull을 시작하고 몇 초 뒤에 레버를 트리거할지. " +
-        "레버가 늦으면 줄이고, 0으로도 늦으면 음수(-0.3 등)로: 레버를 먼저 출발시키고 플레이어이 그만큼 늦게 출발한다")]
+    [Tooltip("우주인이 lever_pull을 시작하고 몇 초 뒤에 레버를 트리거할지. " +
+             "레버가 늦으면 줄이고, 0으로도 늦으면 음수(-0.3 등)로: 레버를 먼저 출발시키고 우주인이 그만큼 늦게 출발한다")]
     // 클립 분석값: lever_pull에서 왼손이 레버를 끌어내리는 구간 = 1.1초~1.63초,
     //        lever_action은 0.47초까지 가만히 있다가 움직임 → 1.1 - 0.47 ≈ 0.65초 늦게 트리거
     public float leverDelay = 0.65f;
-    [Tooltip("플레이어 시작 후 몇 초 뒤에 레버 소리를 낼지 (레버가 실제로 움직이기 시작하는 순간 ≈ 1.1초)")]
+    [Tooltip("우주인 동작 시작 후 몇 초 뒤에 레버 소리를 낼지 (레버가 실제로 움직이기 시작하는 순간 ≈ 1.1초)")]
     public float leverSoundDelay = 1.1f;
-    [Tooltip("플레이어이 butten_push를 시작하고 몇 초 뒤에 버튼이 눌리기 시작할지 (손가락이 버튼에 닿는 순간)")]
+    [Tooltip("우주인이 butten_push를 시작하고 몇 초 뒤에 버튼이 눌리기 시작할지 (손가락이 버튼에 닿는 순간)")]
     public float buttonDelay = 0f;
 
     [Header("경고등 (OVERLOAD일 때) — 없으면 비워두기")]
@@ -59,27 +60,27 @@ public class CenterHologram : ClientUIBase
     public string alarmTrigger = "Alarm";
 
     [Header("사출 더미")]
-    [Tooltip("사출될 때 날아갈 연출용 모델 (리깅/애니메이터 필요 없음). 비워두면 원본만 숨김")]
+    [Tooltip("사출될 때 날아갈 연출용 모델 (리깅/애니메이터 필요 없음). 비워두면 원본만 숨긴다")]
     public GameObject ejectDummyPrefab;
     [Tooltip("더미가 생기는 위치 = 자리 위치 + 이 값 (자리 기준 로컬 좌표)")]
     public Vector3 dummyOffset = new Vector3(0f, 1f, 0f);
     public float ejectUpForce = 12f;
     public float ejectBackForce = 6f;
     public float ejectSpin = 8f;
-    [Tooltip("더미가 사라지기까지 시간 (초). 재시작하면 그 전에도 지워짐")]
+    [Tooltip("더미가 사라지기까지 시간 (초). 재시작하면 그 전에도 지워진다")]
     public float dummyLifetime = 6f;
 
     [Header("의자째 사출 — 체크하면 이 방식, 끄면 위의 더미 방식")]
     public bool flyWithChair = true;
 
-    [Tooltip("자리별 의자 (0번 / 1번). 비워두면 플레이어만 날아감. 플레이어 프리팹 밖(씬)에 있는 의자를 넣는다")]
+    [Tooltip("자리별 의자 (0번 / 1번). 비워두면 플레이어만 날아간다. 플레이어 프리팹 밖(씬)에 있는 의자를 넣는다")]
     public Transform[] chairs = new Transform[2];
 
     [Tooltip("발사 전 덜덜 떨리는 시간(초)과 세기(m)")]
     public float shakeTime = 0.4f;
     public float shakeAmount = 0.03f;
 
-    [Header("사출 높이/시간")]
+    [Tooltip("위로 날아가는 시간(초)과 높이(m)")]
     public float flyTime = 1.6f;
     public float flyHeight = 25f;
 
@@ -101,7 +102,7 @@ public class CenterHologram : ClientUIBase
     [Tooltip("문이 다 열리는 데 걸리는 시간(초). 이 시간 전에는 발사하지 않는다 (문에 머리 박는 것 방지)")]
     public float hatchOpenTime = 0.5f;
 
-    [Header("고개 축 쳐짐 (플레이어 Animator의 Trigger)")]
+    [Header("고개 축 쳐짐 (우주인 Animator의 Trigger)")]
     public string slumpTrigger = "Slump";
     [Tooltip("발사가 시작되고 몇 초 뒤에 고개가 쳐질지")]
     public float slumpDelay = 0.15f;
@@ -152,7 +153,7 @@ public class CenterHologram : ClientUIBase
     [Tooltip("사이렌 오브젝트를 Y축으로 돌리는 속도(도/초). 경광등처럼 빙글빙글. 0이면 안 돌림 (이미 애니메이션이 있으면 0)")]
     public float sirenSpinSpeed = 0f;
 
-    [Tooltip("레버 당기기(플레이어 동작) 시작 후 몇 초 뒤에 숫자가 돌기 시작할지. " +
+    [Tooltip("레버 당기기(우주인 동작) 시작 후 몇 초 뒤에 숫자가 돌기 시작할지. " +
              "레버가 '철컥' 내려가는 순간에 맞추면 된다. 보드와 홀로그램 스크램블이 같이 이 시간에 시작한다")]
     public float rollStartDelay = 1.65f;    // 레버가 끝까지 내려가는 순간 (손이 1.63초에 다 당김)
 
@@ -173,7 +174,7 @@ public class CenterHologram : ClientUIBase
     public PlayableDirector loseTimeline;
     [Tooltip("이긴 사람 화면에서 재생할 타임라인")]
     public PlayableDirector winTimeline;
-    [Tooltip("타임라인 동안 실제 플레이어 모델(플레이어)을 숨긴다. 컷신용 더미 플레이어과 겹쳐 보이지 않게")]
+    [Tooltip("타임라인 동안 실제 플레이어 모델(우주인)을 숨긴다. 컷신용 더미 우주인과 겹쳐 보이지 않게")]
     public bool hidePlayersDuringTimeline = true;
 
     [Tooltip("비행이 끝나고 타임라인 시작 전 잠깐 쉬는 시간(초)")]
@@ -244,6 +245,7 @@ public class CenterHologram : ClientUIBase
     Coroutine gameOverRoutine;
 
 
+    // ────────────────────────── 구독 ──────────────────────────
 
     protected override void Subscribe()
     {
@@ -296,6 +298,7 @@ public class CenterHologram : ClientUIBase
     }
 
 
+    // ────────────────────────── 페이즈 ──────────────────────────
 
     void HandlePhase(GamePhase phase)
     {
@@ -305,7 +308,7 @@ public class CenterHologram : ClientUIBase
         if (phase != GamePhase.RoundStart && phase != GamePhase.Open && phase != GamePhase.Result)
             StopPresentation();
 
-        // GameOver가 아니면 게임 끝 연출(타임라인/문구)도 끊고 숨김 (재시작, 방 대기 등)
+        // GameOver가 아니면 게임 끝 연출(타임라인/문구)도 끊고 숨긴다 (재시작, 방 대기 등)
         if (phase != GamePhase.GameOver)
             StopGameOver();
 
@@ -330,7 +333,7 @@ public class CenterHologram : ClientUIBase
                 break;
 
             case GamePhase.Press:
-                // 내 차례인지에 따라 문구가 다름
+                // 내 차례인지에 따라 문구가 다르다
                 bool myPress = client != null && presserSeat == client.myIndex.Value;
                 SetMessage(myPress ? pressNowText : waitPressText, warnColor);
                 ShowPresserMarker(presserSeat);                 // 혹시 꺼졌으면 다시
@@ -359,13 +362,14 @@ public class CenterHologram : ClientUIBase
     }
 
 
-    // 값 받고 화면에 쓰지 않고 저장만, 공개는 연출 코루틴이 함.
+    // ────────────────────────── 값 ──────────────────────────
+    // 값은 받자마자 화면에 쓰지 않고 저장만 한다. 공개는 연출 코루틴이 한다.
 
     void HandleRound(int round)
     {
         pendingRound = round;
 
-        // 1라운드 = 새 게임. 서버가 첫 확률을 안 보내주므로 규칙값으로 보여줌
+        // 1라운드 = 새 게임. 서버가 첫 확률을 안 보내주므로 규칙값으로 보여준다 (명세서 14쪽)
         if (round == 1)
         {
             var rule = GameManager.Instance != null ? GameManager.Instance.gameRule : null;
@@ -378,8 +382,8 @@ public class CenterHologram : ClientUIBase
     void HandleCardsRevealed(int mine, int opp) => pendingCards = (mine, opp);   // 저장만, 공개는 Open 연출
 
     /// <summary>
-    /// 플레이어 lever_pull 클립의 OnLeverPull 이벤트
-    /// 각자 화면에서 각자 플레이어 애니메이션이 부르므로 네트워크와 상관없이 양쪽 다 맞는다.
+    /// 우주인 lever_pull 클립의 OnLeverPull 이벤트 → 그 자리 레버를 움직인다.
+    /// 각자 화면에서 각자 우주인 애니메이션이 부르므로 네트워크와 상관없이 양쪽 다 맞는다.
     /// </summary>
     void HandleLeverPulled(int seat)
     {
@@ -415,15 +419,17 @@ public class CenterHologram : ClientUIBase
         pendingOuted = outed;
     }
 
+    // 이제 GameOver에도 연출(타임라인)이 있으므로 저장만 하고, 타임라인이 끝난 뒤 보여준다
     void HandleGameWin(bool win)
     {
         pendingWin = win;
     }
 
+    // ────────────────────────── 게임 끝 ──────────────────────────
 
-    // 순서: (Result 연출에서 시작된) 플레이어 비행이 끝날 때까지 기다림
+    // 순서: (Result 연출에서 시작된) 우주인 비행이 끝날 때까지 기다림
     //       → 처형 타임라인 재생 → 끝나면 EndGame 문구
-    // GameOver는 서버가 연출 끝 신호를 기다리지 않는 페이즈라 EndPresentation을 보내지 않음
+    // GameOver는 서버가 연출 끝 신호를 기다리지 않는 페이즈라 EndPresentation을 보내지 않는다.
 
     void StartGameOver()
     {
@@ -433,7 +439,7 @@ public class CenterHologram : ClientUIBase
 
     IEnumerator GameOverRoutine()
     {
-        //비행이 아직 진행 중이면 끝날 때까지 (flight는 비행 코루틴이 끝나면 null이 된다)
+        // 1) 비행이 아직 진행 중이면 끝날 때까지 (flight는 비행 코루틴이 끝나면 null이 된다)
         while (flight != null) yield return null;
 
         // 비행이 끝나고 조금 뒤 사이렌 끄기 (타임라인 시작 전)
@@ -443,7 +449,8 @@ public class CenterHologram : ClientUIBase
         if (beforeTimelineDelay > 0f)
             yield return new WaitForSeconds(beforeTimelineDelay);
 
-        //처형 타임라인
+        // 2) 처형 타임라인
+        // 이겼으면 winTimeline, 졌으면 loseTimeline (없으면 endTimeline)
         bool win = pendingWin ?? false;
         PlayableDirector dir = win ? (winTimeline != null ? winTimeline : endTimeline)
                                    : (loseTimeline != null ? loseTimeline : endTimeline);
@@ -479,7 +486,7 @@ public class CenterHologram : ClientUIBase
         string s = win ? winText : loseText;
         Color c = win ? endWinColor : endLoseColor;            // 문구 색을 따로
 
-        SetMessage(s, c);                                       // 홀로그램에도
+        SetMessage(s, c);                                       // 홀로그램에도 (원래 하던 것)
 
         if (endGameTexts != null)
             foreach (var t in endGameTexts)
@@ -488,7 +495,7 @@ public class CenterHologram : ClientUIBase
         if (endGameRoot != null)
         {
             var crt = endGameRoot.GetComponent<CrtPopup>();
-            if (crt != null) crt.Show();                        
+            if (crt != null) crt.Show();                        // TV 켜지듯
             else endGameRoot.SetActive(true);
         }
         Log($"EndGame 문구: {s}");
@@ -515,6 +522,9 @@ public class CenterHologram : ClientUIBase
         // 승패(OnGameWin)는 GameOver 페이즈보다 "먼저" 도착하는데, StartGameOver도 이 함수를 부르므로
         // 여기서 지우면 방금 받은 승패가 날아간다. 다음 게임의 승패가 오면 덮어써진다.
     }
+
+
+    // ────────────────────────── 연출 ──────────────────────────
 
 
     void StartPresentation(GamePhase phase)
@@ -558,14 +568,14 @@ public class CenterHologram : ClientUIBase
         SetTexts(roundTexts, $"ROUND {pendingRound}");
         yield return new WaitForSeconds(0.5f);
 
-        // 플레이어 동작을 먼저 시작하고, 손이 닿는 시점(leverDelay)에 레버가 움직인다
+        // 우주인 동작을 먼저 시작하고, 손이 닿는 시점(leverDelay)에 레버가 움직인다
         leverMoved[0] = leverMoved[1] = false;
         leverSoundDone = false;
         leverEventArrived = false;
 
         if (useLeverEvent && animateAstronaut)
         {
-            // 이벤트 방식: 플레이어만 출발시키고, 레버는 클립 이벤트(OnLeverPull)가 오면 HandleLeverPulled가 움직인다
+            // 이벤트 방식: 우주인만 출발시키고, 레버는 클립 이벤트(OnLeverPull)가 오면 HandleLeverPulled가 움직인다
             Trigger(GetAstronautAnimator(0), astronautPullTrigger);
             Trigger(GetAstronautAnimator(1), astronautPullTrigger);
 
@@ -590,7 +600,7 @@ public class CenterHologram : ClientUIBase
         else
         {
             // 시간 방식 (이벤트를 안 쓸 때)
-            // Lever Delay가 음수면 = 레버를 먼저 출발시키고, 플레이어을 그만큼 늦게 출발시킨다
+            // Lever Delay가 음수면 = 레버를 먼저 출발시키고, 우주인을 그만큼 늦게 출발시킨다
             float astroWait = Mathf.Max(0f, -leverDelay);
             float leverWait = Mathf.Max(0f, leverDelay);
 
@@ -727,7 +737,7 @@ public class CenterHologram : ClientUIBase
         StopButtonBlink();                                      // 버튼이 눌렸으니 빨간불 끄기
 
         // 1) 누른 사람 자리의 버튼이 눌린다
-        // 누른 사람 플레이어이 버튼을 누르는 동작을 먼저 시작하고,
+        // 누른 사람 우주인이 버튼을 누르는 동작을 먼저 시작하고,
         //        손가락이 닿는 시점(buttonDelay)에 그 자리 버튼이 눌린다
         if (animateAstronaut && presserSeat >= 0)
             Trigger(GetAstronautAnimator(presserSeat), astronautPressTrigger);
@@ -777,6 +787,7 @@ public class CenterHologram : ClientUIBase
     }
 
 
+    // ────────────────────────── 사출 / 무대 정리 ──────────────────────────
 
     /// <summary>
     /// 그 자리 사람의 원본 모델을 숨기고, 연출용 더미를 날린다.
@@ -838,7 +849,11 @@ public class CenterHologram : ClientUIBase
             if (presserMarkers[i] != null) presserMarkers[i].SetActive(i == seat);
     }
 
+    // ────────────────────────── 의자째 사출 ──────────────────────────
 
+    // 흐름: 덜덜 떨림(shakeTime) → 위로 발사(flyTime) + 고개 쳐짐 → 숨김
+    // 각자 화면에서 똑같이 계산해서 움직인다 (네트워크로 위치를 주고받지 않음).
+    // 떨림만 랜덤이라 양쪽 화면이 미세하게 다르지만, 날아가는 경로는 같다.
 
     /// <summary>그 자리의 플레이어와 의자를 같이 위로 날린다</summary>
     void StartEjectFlight(int seat)
@@ -865,6 +880,8 @@ public class CenterHologram : ClientUIBase
 
         flownSeat = seat;                                   // 불꽃 파티클용
 
+        // ★ 중요: HeadLookSync는 매 프레임(LateUpdate) 머리 본 회전을 덮어쓴다.
+        //   켜둔 채로 두면 고개 쳐짐 애니메이션의 머리 움직임이 지워진다 → 잠깐 끈다.
         flownLook = target.GetComponentInChildren<HeadLookSync>();
         if (flownLook != null) flownLook.enabled = false;
 
@@ -896,7 +913,7 @@ public class CenterHologram : ClientUIBase
         Vector3 cStart = (chair != null) ? chair.position : Vector3.zero;
         Quaternion cRot = (chair != null) ? chair.rotation : Quaternion.identity;
 
-        //발사 직전 덜덜 떨림 (천장 문이 다 열릴 때까지는 계속 떤다)
+        // 1) 발사 직전 덜덜 떨림 (천장 문이 다 열릴 때까지는 계속 떤다)
         float shakeDuration = Mathf.Max(shakeTime, hatchOpenTime);
         float t = 0f;
         while (t < shakeDuration)
@@ -907,7 +924,7 @@ public class CenterHologram : ClientUIBase
             yield return null;
         }
 
-        //발사 + 고개 쳐짐
+        // 2) 발사 + 고개 쳐짐
         TriggerLater(flownAnim, slumpTrigger, slumpDelay);
         PlayThruster(flownSeat);                            // 의자 밑 불꽃 분사
 
@@ -985,6 +1002,7 @@ public class CenterHologram : ClientUIBase
     {
         if (hatchAnimators == null || seat < 0 || seat >= hatchAnimators.Length) return;
         Trigger(hatchAnimators[seat], hatchTrigger);
+        Log($"천장 문 열기: 자리 {seat}");                    // 코드가 연 건지 확인용
     }
 
     /// <summary>천장 문을 전부 닫힌 처음 상태로 (Animator 기본 State = 닫힘이어야 함)</summary>
@@ -1036,8 +1054,8 @@ public class CenterHologram : ClientUIBase
     }
 
     /// <summary>
-    /// 그 자리 플레이어의 Animator.
-    /// 플레이어은 플레이어 프리팹(GameClient) 안에 있어서 Inspector로 연결할 수 없으므로 실행 중에 찾는다.
+    /// 그 자리 우주인의 Animator.
+    /// 우주인은 플레이어 프리팹(GameClient) 안에 있어서 Inspector로 연결할 수 없으므로 실행 중에 찾는다.
     /// </summary>
     static Animator GetAstronautAnimator(int seat)
     {
@@ -1057,6 +1075,17 @@ public class CenterHologram : ClientUIBase
             r.enabled = on;
     }
 
+
+    // ────────────────────────── 헬퍼 ──────────────────────────
+
+        public void ShowCheatPer(int per)
+    {
+        ShowPer(per, warnColor);
+        SetMessage($"OVERRIDE  EJECTION RISK {per}%", warnColor);
+
+        // Result 연출 도중이면 곧 표시될 확률(서버가 치트 전에 보낸 값)도 바꿔 둔다 (화면이 옛 값으로 돌아가지 않게)
+        if (pendingPer.HasValue) pendingPer = (pendingPer.Value.before, per);
+    }
 
     void SetMessage(string s, Color c)
     {

@@ -11950,7 +11950,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  SOGameRule: {fileID: 11400000, guid: d5a2a910cd4120748b2f1244ae7904fb, type: 2}
+  SOGameRule: {fileID: 11400000, guid: 717eec91d767ed64b8d4ac0f229dfb63, type: 2}
   gameRule: {fileID: 0}
   seats:
   - {fileID: 143814811}
@@ -29637,17 +29637,17 @@ MonoBehaviour:
     pitchRange: {x: 1, y: 1}
   - id: voice_b
     clips:
-    - {fileID: 0}
+    - {fileID: 8300000, guid: c70865221da04bb42a714f8426de403b, type: 3}
     volume: 1
     pitchRange: {x: 1, y: 1}
   - id: voice_c
     clips:
-    - {fileID: 0}
+    - {fileID: 8300000, guid: 7d1cc0013ea58864e9a16ed59de41730, type: 3}
     volume: 1
     pitchRange: {x: 1, y: 1}
   - id: voice_d
     clips:
-    - {fileID: 0}
+    - {fileID: 8300000, guid: edb2f4254ca2c33469255784f4cc0c03, type: 3}
     volume: 1
     pitchRange: {x: 1, y: 1}
   lobbyBgm: {fileID: 8300000, guid: c270effbbacf1184d832db9444b7cf90, type: 3}
