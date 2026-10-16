@@ -1078,6 +1078,15 @@ public class CenterHologram : ClientUIBase
 
     // ────────────────────────── 헬퍼 ──────────────────────────
 
+        public void ShowCheatPer(int per)
+    {
+        ShowPer(per, warnColor);
+        SetMessage($"OVERRIDE  EJECTION RISK {per}%", warnColor);
+
+        // Result 연출 도중이면 곧 표시될 확률(서버가 치트 전에 보낸 값)도 바꿔 둔다 (화면이 옛 값으로 돌아가지 않게)
+        if (pendingPer.HasValue) pendingPer = (pendingPer.Value.before, per);
+    }
+
     void SetMessage(string s, Color c)
     {
         SetTexts(messageTexts, s);
