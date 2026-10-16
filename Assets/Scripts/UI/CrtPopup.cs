@@ -43,10 +43,7 @@ public class CrtPopup : MonoBehaviour
     public int flickerCount = 2;
 
     [Header("사운드 id (SoundManager) — 비우면 소리 없음")]
-    // [원래] public AudioSource sfx;
-    // [원래] public AudioClip onClip;
-    // [원래] public AudioClip offClip;
-    // [변경] 소리는 SoundManager가 관리. SoundManager 'Sounds' 목록의 id만 적는다
+    // 소리는 SoundManager가 관리. SoundManager 'Sounds' 목록의 id만 적는다
     public string onClip = "tv_on";
     public string offClip = "tv_off";
 
@@ -162,8 +159,7 @@ public class CrtPopup : MonoBehaviour
         g.color = c;
     }
 
-    // [원래] void Play(AudioClip clip) { if (sfx != null && clip != null) sfx.PlayOneShot(clip); }
-    void Play(string id)                                    // [변경] SoundManager로
+    void Play(string id)                                    // SoundManager로
     {
         if (!string.IsNullOrEmpty(id)) SoundManager.Play(id);
     }

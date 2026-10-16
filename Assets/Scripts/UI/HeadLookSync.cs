@@ -165,7 +165,6 @@ public class HeadLookSync : NetworkBehaviour
             camRig.localRotation = Quaternion.Euler(-shownLook.y, shownLook.x, 0f);
 
         if (head == null) return;
-        //if (animator == null || !animator.isActiveAndEnabled)
         head.localRotation = headBaseLocal;
         // 애니메이션이 만든 머리 포즈 위에, 캐릭터 기준 축으로 회전을 더한다.
         // (본의 로컬 축 방향은 모델마다 달라서 localRotation 대입은 쓰면 안 된다)

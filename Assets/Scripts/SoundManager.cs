@@ -94,7 +94,7 @@ public class SoundManager : ClientUIBase
     public Slider bgmSlider;
     public Slider sfxSlider;
 
-    [Header("[추가] 디버그")]
+    [Header("디버그")]
     [Tooltip("체크하면 볼륨을 바꿀 때 지금 BGM이 실제로 SoundManager에서 나오는지 콘솔에 찍는다")]
     public bool debugLog = false;
 
@@ -135,7 +135,7 @@ public class SoundManager : ClientUIBase
         bgmVolume = PlayerPrefs.GetFloat(KeyBgm, bgmVolume);
         sfxVolume = PlayerPrefs.GetFloat(KeySfx, sfxVolume);
 
-        // [추가] 마스터 볼륨은 게임 전체 소리(AudioListener)에 건다.
+        // 마스터 볼륨은 게임 전체 소리(AudioListener)에 건다.
         //        SoundManager를 안 거치는 소리(씬에 따로 둔 AudioSource 등)까지 전부 같이 줄어든다
         AudioListener.volume = masterVolume;
     }
@@ -247,8 +247,7 @@ public class SoundManager : ClientUIBase
         fadeRoutine = null;
     }
 
-    // [원래] float BgmTarget => bgmBaseVolume * bgmVolume * masterVolume;
-    float BgmTarget => bgmBaseVolume * bgmVolume;          // [변경] 마스터는 AudioListener가 따로 곱한다
+    float BgmTarget => bgmBaseVolume * bgmVolume;          // 마스터는 AudioListener가 따로 곱한다
 
 
     // ────────────────────────── 효과음 ──────────────────────────
@@ -293,8 +292,7 @@ public class SoundManager : ClientUIBase
         src.PlayOneShot(clip, s.volume * SfxScale);
     }
 
-    // [원래] float SfxScale => sfxVolume * masterVolume;
-    float SfxScale => sfxVolume;                           // [변경] 마스터는 AudioListener가 따로 곱한다
+    float SfxScale => sfxVolume;                           // 마스터는 AudioListener가 따로 곱한다
 
 
     // ────────────────────────── 반복 효과음 (사이렌 등) ──────────────────────────
@@ -341,8 +339,7 @@ public class SoundManager : ClientUIBase
 
     // ────────────────────────── 볼륨 (설정 UI 슬라이더에 연결) ──────────────────────────
 
-    // [원래] public void SetMasterVolume(float v) { masterVolume = v; Save(KeyMaster, v); ApplyBgmVolume(); ApplyLoopVolume(); }
-    public void SetMasterVolume(float v) { masterVolume = v; Save(KeyMaster, v); AudioListener.volume = v; }   // [변경]
+    public void SetMasterVolume(float v) { masterVolume = v; Save(KeyMaster, v); AudioListener.volume = v; }
     public void SetBgmVolume(float v) { bgmVolume = v; Save(KeyBgm, v); ApplyBgmVolume(); }
     public void SetSfxVolume(float v) { sfxVolume = v; Save(KeySfx, v); ApplyLoopVolume(); }
 
@@ -355,8 +352,7 @@ public class SoundManager : ClientUIBase
 
     void ApplyBgmVolume()
     {
-        // [원래] if (fadeRoutine == null && activeBgm != null) activeBgm.volume = BgmTarget;
-        // [변경] 크로스페이드 중이어도 바로 반영 (페이드는 매 프레임 BgmTarget을 다시 읽으므로 안전)
+        // 크로스페이드 중이어도 바로 반영 (페이드는 매 프레임 BgmTarget을 다시 읽으므로 안전)
         if (activeBgm != null) activeBgm.volume = BgmTarget;
         if (debugLog) Debug.Log($"[SoundManager] BGM 볼륨 {BgmTarget:F2} (재생 중: {(activeBgm != null && activeBgm.isPlaying ? activeBgm.clip.name : "없음")})");
     }

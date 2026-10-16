@@ -86,7 +86,7 @@ public class PauseMenu : MonoBehaviour
     {
         if (!IsOpen) return;
         IsOpen = false;
-        AskUI.SetActive(false);
+        if (AskUI != null) AskUI.SetActive(false);
         if (panel != null) panel.SetActive(false);
         HeadLookSync.SetCursorFree(false);
     }
@@ -108,7 +108,7 @@ public class PauseMenu : MonoBehaviour
     void OnExit()
     {
         if (RelayManager.Instance == null) return;
-        AskUI.SetActive(false);
+        if (AskUI != null) AskUI.SetActive(false);
         ForceClose();
         RelayManager.Instance.LeaveRoom(exitReason);
     }

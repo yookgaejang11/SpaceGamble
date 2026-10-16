@@ -1,5 +1,5 @@
-using System.Collections;     // [추가] 슬롯머신 코루틴
-using DG.Tweening;            // [추가] 멈출 때 튕기는 효과 (DOTween)
+using System.Collections;     // 슬롯머신 코루틴
+using DG.Tweening;            // 멈출 때 튕기는 효과 (DOTween)
 using TMPro;
 using UnityEngine;
 
@@ -14,14 +14,12 @@ using UnityEngine;
 /// 내 칸은 서버가 값을 보낸 적이 없다. "??"는 하드코딩이다.
 /// (숨겨야 하는 정보는 애초에 클라이언트로 오지 않는다)
 ///
-/// ===== [추가] 슬롯머신 =====
 /// 상대 카드는 받자마자 보여주지 않고 저장만 한다 (명세서: 값은 연출 안에서 공개).
 /// RoundStart 연출 중에 CenterHologram이 PlayRoll()을 부르면
 ///   두 칸 다 숫자가 빠르게 돌다가 → 점점 느려지고 →
 ///   내 칸이 먼저 "??"에서 딱 멈추고 → 마지막에 상대 칸이 뽑은 숫자로 딱 멈춘다.
 /// 연출 종료 신호(EndPresentation)는 보내지 않는다 (CenterHologram만 보낸다).
 /// CenterHologram이 연결 안 돼 있어도 talkTime이 되면 숫자는 그냥 나온다 (안전장치).
-/// ===== [추가] 끝 =====
 /// </summary>
 public class SeatBoard : ClientUIBase
 {
@@ -42,8 +40,7 @@ public class SeatBoard : ClientUIBase
     public Color readyColor = new Color(0.5f, 1f, 0.6f);
     public Color dimColor = new Color(0.5f, 0.5f, 0.5f);
 
-    // ===== [추가] 슬롯머신 설정 =====
-    [Header("[추가] 슬롯머신")]
+    [Header("슬롯머신")]
     [Tooltip("전체 도는 시간(초). 상대 칸이 이 시간에 멈춘다")]
     public float rollTime = 1.4f;
     [Tooltip("내 칸(??)이 멈추는 시점 (전체 시간 대비 비율). 0.7이면 70% 지점에 먼저 멈춤")]
@@ -56,32 +53,26 @@ public class SeatBoard : ClientUIBase
     public Color rollingColor = new Color(0.6f, 0.75f, 0.85f);
     [Tooltip("상대 숫자가 확정될 때 색 (강조)")]
     public Color revealColor = new Color(1f, 0.85f, 0.3f);
-    [Tooltip("[추가] 카드 공개 때 낮은 쪽(버튼을 눌러야 하는 쪽) 숫자 색")]
+    [Tooltip("카드 공개 때 낮은 쪽(버튼을 눌러야 하는 쪽) 숫자 색")]
     public Color loseColor = new Color(1f, 0.3f, 0.25f);
-    [Tooltip("[추가] 카드 공개 때 내 칸이 도는 시간(초)")]
+    [Tooltip("카드 공개 때 내 칸이 도는 시간(초)")]
     public float revealRollTime = 0.8f;
     [Tooltip("멈출 때 '딱' 튕기는 크기. 0이면 안 튕김")]
     public float landPunch = 0.3f;
 
-    [Header("[변경] 사운드 id (SoundManager) — 비우면 소리 없음")]
-    // [원래] public AudioSource sfx;
-    // [원래] public AudioClip tickClip;      // 숫자 바뀔 때 '틱'
-    // [원래] public AudioClip lockClip;      // 내 칸 멈출 때 '철컥'
-    // [원래] public AudioClip landClip;      // 상대 칸 확정 '딱'
-    // [변경] 소리는 SoundManager가 관리. SoundManager 'Sounds' 목록의 id만 적는다
+    [Header("사운드 id (SoundManager) — 비우면 소리 없음")]
+    // 소리는 SoundManager가 관리. SoundManager 'Sounds' 목록의 id만 적는다
     public string tickClip = "slot_tick";   // 숫자 바뀔 때 '틱'
     public string lockClip = "slot_lock";   // 내 칸 멈출 때 '철컥'
     public string landClip = "slot_land";   // 숫자 확정 '딱'
-    // ===== [추가] 끝 =====
 
     int shownCard = 0;      // 마지막으로 받은 상대 카드
-    // [추가]
     int pendingCard = 0;            // 받았지만 아직 공개 안 한 상대 카드
-    int? revealedMine;              // [추가] 공개된 내 숫자 (null이면 아직 ??)
-    int pendingMine = -1;           // [추가] 공개 연출 중인 내 숫자
+    int? revealedMine;              // 공개된 내 숫자 (null이면 아직 ??)
+    int pendingMine = -1;           // 공개 연출 중인 내 숫자
     Coroutine rollRoutine;
 
-    /// <summary>[추가] 지금 슬롯머신이 도는 중인가 (CenterHologram이 기다릴 때 읽는다)</summary>
+    /// <summary>지금 슬롯머신이 도는 중인가 (CenterHologram이 기다릴 때 읽는다)</summary>
     public bool IsRolling => rollRoutine != null;
 
 
@@ -106,7 +97,6 @@ public class SeatBoard : ClientUIBase
         HandlePhase(client.curPhase);
     }
 
-    // ===== [추가] 방 나감 / 꺼짐 정리 =====
     protected override void OnClientLost() => StopRoll();
 
     protected override void OnDisable()
@@ -114,7 +104,6 @@ public class SeatBoard : ClientUIBase
         base.OnDisable();
         StopRoll();
     }
-    // ===== [추가] 끝 =====
 
 
     /// <summary>내가 Player1 칸인가</summary>
@@ -123,26 +112,23 @@ public class SeatBoard : ClientUIBase
 
     void HandlePhase(GamePhase phase)
     {
-        // [추가] RoundStart가 아닌데 아직 돌고 있으면 끊는다 (연출 시간 초과 등)
-        // [원래] if (phase != GamePhase.RoundStart) StopRoll();
-        if (phase != GamePhase.RoundStart && phase != GamePhase.Open) StopRoll();   // [변경] Open엔 카드 공개가 돈다
+        // RoundStart가 아닌데 아직 돌고 있으면 끊는다 (연출 시간 초과 등)
+        if (phase != GamePhase.RoundStart && phase != GamePhase.Open) StopRoll();   // Open엔 카드 공개가 돈다
 
-        // [추가] 새 라운드 / 대기면 공개했던 내 숫자를 다시 숨긴다
+        // 새 라운드 / 대기면 공개했던 내 숫자를 다시 숨긴다
         if (phase == GamePhase.RoundStart || phase == GamePhase.waiting)
             revealedMine = null;
 
         if (phase == GamePhase.waiting || phase == GamePhase.GameOver)
             DrawReady(client.isReady, client.opponentReady, client.opponentPresent);
-        // ===== [추가] RoundStart: 슬롯머신이 돌기 전까지는 두 칸 다 ?? =====
         else if (phase == GamePhase.RoundStart)
         {
             if (!IsRolling)
                 Set(hiddenMark, hiddenMark, dimColor, dimColor);
         }
-        // ===== [추가] 끝 =====
         else
         {
-            // [추가] 안전장치: 슬롯머신이 안 돌았어도(CenterHologram 미연결 등) 이때부턴 숫자를 보여준다
+            // 안전장치: 슬롯머신이 안 돌았어도(CenterHologram 미연결 등) 이때부턴 숫자를 보여준다
             shownCard = pendingCard;
             DrawCards(shownCard);
         }
@@ -150,9 +136,7 @@ public class SeatBoard : ClientUIBase
 
     void HandleOpponentCard(int card)
     {
-        // [원래] shownCard = card;
-        // [원래] DrawCards(card);
-        pendingCard = card;         // [변경] 저장만. 공개는 슬롯머신(PlayRoll)이 한다
+        pendingCard = card;         // 저장만. 공개는 슬롯머신(PlayRoll)이 한다
     }
 
     void HandleReady(bool mine, bool opponent)
@@ -167,8 +151,6 @@ public class SeatBoard : ClientUIBase
             DrawReady(client.isReady, client.opponentReady, present);
     }
 
-
-    // ===== [추가] 슬롯머신 =====
 
     /// <summary>CenterHologram의 RoundStart 연출에서 부른다</summary>
     public void PlayRoll(int card)
@@ -233,10 +215,9 @@ public class SeatBoard : ClientUIBase
         StopCoroutine(rollRoutine);
         rollRoutine = null;
         shownCard = pendingCard;
-        if (pendingMine > 0) revealedMine = pendingMine;    // [추가] 공개 도중 끊겨도 결과는 맞춰 둔다
+        if (pendingMine > 0) revealedMine = pendingMine;    // 공개 도중 끊겨도 결과는 맞춰 둔다
     }
 
-    // ===== [추가] 카드 공개 (Open 연출에서, 버튼 누르기 전) =====
 
     /// <summary>
     /// CenterHologram의 Open 연출에서 부른다.
@@ -278,7 +259,6 @@ public class SeatBoard : ClientUIBase
         yield return new WaitForSeconds(0.3f);
         rollRoutine = null;
     }
-    // ===== [추가] 끝 =====
 
     // 내 칸 / 상대 칸 배열 (내가 P1이면 p1Texts가 내 칸)
     TextMeshPro[] MyTexts => IAmP1 ? p1Texts : p2Texts;
@@ -305,24 +285,18 @@ public class SeatBoard : ClientUIBase
         }
     }
 
-    // [원래] void Play(AudioClip clip) { if (sfx != null && clip != null) sfx.PlayOneShot(clip); }
-    void Play(string id)                                    // [변경] SoundManager로
+    void Play(string id)                                    // SoundManager로
     {
         if (!string.IsNullOrEmpty(id)) SoundManager.Play(id);
     }
-    // ===== [추가] 끝 =====
 
 
     // ────────────────────────── 그리기 ──────────────────────────
 
     void DrawCards(int opponentCard)
     {
-        // [원래] string mine = hiddenMark;
-        // [원래] string theirs = opponentCard.ToString();
-        // [원래] Set(IAmP1 ? mine : theirs, IAmP1 ? theirs : mine,
-        // [원래]     normalColor, normalColor);
 
-        // [변경] 내 숫자가 공개됐으면 숫자로, 아니면 ??
+        // 내 숫자가 공개됐으면 숫자로, 아니면 ??
         string mine = revealedMine.HasValue ? revealedMine.Value.ToString() : hiddenMark;
         string theirs = opponentCard.ToString();
 

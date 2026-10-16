@@ -94,7 +94,7 @@ public class LobbyUI : MonoBehaviour
     {
         CloseNotice();
 
-        // [수정] CreateRoom을 한 번만 부른다 (두 번째 호출은 이미 방이 있어서 null을 돌려줬다)
+        // CreateRoom을 한 번만 부른다 (두 번째 호출은 이미 방이 있어서 null을 돌려줬다)
         string code = await RelayManager.Instance.CreateRoom();
         if (code == null) return;                       // 실패 알림은 OnRoomConnectFailed가 처리
     }

@@ -329,7 +329,7 @@ public class GameManager : NetworkBehaviour
         clients[0].ReceiveChoiceRevealedRpc(session.choices[0], session.choices[1], clients[0].ToMe);
         clients[1].ReceiveChoiceRevealedRpc(session.choices[1], session.choices[0], clients[1].ToMe);
 
-        // [추가] 카드 공개 — 시점 변환 (내 것, 상대 것). 연출(Open)에서 "버튼 누르기 전"에 보여준다
+        // 카드 공개 — 시점 변환 (내 것, 상대 것). 연출(Open)에서 "버튼 누르기 전"에 보여준다
         clients[0].ReceiveCardsRevealRpc(session.cardNums[0], session.cardNums[1], clients[0].ToMe);
         clients[1].ReceiveCardsRevealRpc(session.cardNums[1], session.cardNums[0], clients[1].ToMe);
 
@@ -471,22 +471,4 @@ public class GameManager : NetworkBehaviour
         if (clients[1] != null)
             clients[1].ReceiveOpponentPresentRpc(clients[0] != null, clients[1].ToMe);
     }
-    // ────────────────────────── 디버그 ──────────────────────────
-
-    //void OnGUI()
-    //{
-    //    if (!IsServer) return;
-    //    if (session == null) return;
-
-    //    GUILayout.BeginArea(new Rect(470, 0, 260, 320));
-    //    GUILayout.Label("=== SERVER ===");
-    //    GUILayout.Label($"phase {curPhase}   round {session.curRound}");
-    //    GUILayout.Label($"ready : {isReady[0]} / {isReady[1]}");
-    //    GUILayout.Label($"cards : {session.cardNums[0]} / {session.cardNums[1]}");
-    //    GUILayout.Label($"choice: {session.choices[0]} / {session.choices[1]}");
-    //    GUILayout.Label($"per   : {session.curOutPer}%  (x{session.GetOverloadMul(gameRule):0.0})");
-    //    GUILayout.Label($"presser: {session.pressedPlayer}");
-    //    GUILayout.Label($"timer : {talkTimer:F1}");
-    //    GUILayout.EndArea();
-    //}
 }

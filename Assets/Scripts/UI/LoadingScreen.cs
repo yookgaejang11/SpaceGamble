@@ -32,7 +32,8 @@ public class LoadingScreen : MonoBehaviour
 
     [Tooltip("팁 문구 (없으면 비워두기). 켜질 때마다 랜덤으로 하나")]
     public TMP_Text tipText;
-    [TextArea] public string[] tips =
+    [TextArea]
+    public string[] tips =
     {
         "숫자가 낮은 쪽이 사출 버튼을 누른다.",
         "OVERLOAD는 이번 라운드 사출 확률을 끌어올린다.",
