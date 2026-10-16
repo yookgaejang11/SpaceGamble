@@ -4,26 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// 게임 전체 사운드 관리자 (BGM + 효과음 + 볼륨).
-///
-/// 하는 일
-///   1) BGM: 페이즈에 맞춰 자동으로 바뀐다 (로비 / 대기 / 게임 중 / 버튼 누르기 긴장 / 게임 끝).
-///      바뀔 때 부드럽게 크로스페이드.
-///   2) 효과음: 이름으로 재생.  SoundManager.Play("lever");
-///      같은 이름에 클립을 여러 개 넣으면 랜덤으로 하나 골라 튼다 (매번 똑같지 않게).
-///      위치를 주면 3D로 그 자리에서 소리가 난다.  SoundManager.PlayAt("eject", 위치);
-///   3) 볼륨: 마스터 / BGM / 효과음을 따로 저장 (PlayerPrefs). 설정 UI 슬라이더에 연결하면 된다.
-///
-/// 붙이는 곳
-///   씬에 빈 오브젝트 "SoundManager"를 만들고 이 스크립트 하나만 붙인다. AudioSource는 자동으로 만든다.
-///   항상 켜져 있어야 한다.
-///
-/// 다른 스크립트에서 쓰는 법 (어디서든)
-///   SoundManager.Play("tick");
-///   SoundManager.PlayAt("eject", transform.position);
-///   SoundManager.Instance.SetBgmVolume(0.5f);
-/// </summary>
 public class SoundManager : ClientUIBase
 {
     public static SoundManager Instance { get; private set; }

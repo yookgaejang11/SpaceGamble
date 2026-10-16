@@ -3,24 +3,6 @@ using DG.Tweening;            // 멈출 때 튕기는 효과 (DOTween)
 using TMPro;
 using UnityEngine;
 
-/// <summary>
-/// Player1 / Player2 보드.
-///
-/// 양쪽 보드가 같은 내용을 보여주므로 스크립트 하나로 둘 다 처리한다.
-/// 배열에 보드 두 개의 텍스트를 각각 넣으면 된다.
-///   p1Texts = [위쪽 보드의 Player1 칸, 아래쪽 보드의 Player1 칸]
-///   p2Texts = [위쪽 보드의 Player2 칸, 아래쪽 보드의 Player2 칸]
-///
-/// 내 칸은 서버가 값을 보낸 적이 없다. "??"는 하드코딩이다.
-/// (숨겨야 하는 정보는 애초에 클라이언트로 오지 않는다)
-///
-/// 상대 카드는 받자마자 보여주지 않고 저장만 한다 (명세서: 값은 연출 안에서 공개).
-/// RoundStart 연출 중에 CenterHologram이 PlayRoll()을 부르면
-///   두 칸 다 숫자가 빠르게 돌다가 → 점점 느려지고 →
-///   내 칸이 먼저 "??"에서 딱 멈추고 → 마지막에 상대 칸이 뽑은 숫자로 딱 멈춘다.
-/// 연출 종료 신호(EndPresentation)는 보내지 않는다 (CenterHologram만 보낸다).
-/// CenterHologram이 연결 안 돼 있어도 talkTime이 되면 숫자는 그냥 나온다 (안전장치).
-/// </summary>
 public class SeatBoard : ClientUIBase
 {
     [Header("Player1 칸 (보드마다 하나씩)")]
@@ -295,7 +277,6 @@ public class SeatBoard : ClientUIBase
 
     void DrawCards(int opponentCard)
     {
-
         // 내 숫자가 공개됐으면 숫자로, 아니면 ??
         string mine = revealedMine.HasValue ? revealedMine.Value.ToString() : hiddenMark;
         string theirs = opponentCard.ToString();

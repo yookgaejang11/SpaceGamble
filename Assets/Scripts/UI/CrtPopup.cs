@@ -2,20 +2,6 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// 옛날 브라운관 TV가 켜지고 꺼지듯이 UI를 띄우는 스크립트 (DOTween 사용).
-///
-/// 켜질 때:  점 → 가로로 얇은 빛줄기가 쫙 퍼짐 → 세로로 퐉 펼쳐짐(살짝 튕김) → 흰 번쩍임이 사라짐 + 깜빡깜빡
-/// 꺼질 때:  세로로 납작하게 줄어 가로줄 → 가로줄이 가운데 점으로 → 꺼짐(SetActive false)
-///
-/// 붙이는 곳
-///   selectUI 루트 오브젝트 자신 (p1_SelctUi / p2_SelctUi).
-///   켜고 끄는 건 SeatPanel이 이 스크립트의 Show() / Hide()를 불러서 한다.
-///   (꺼질 때는 애니메이션이 끝난 뒤에 이 스크립트가 직접 SetActive(false) 한다)
-///
-/// 준비물
-///   DOTween (Asset Store 무료) 설치 후 Tools > Demigiant > DOTween Utility Panel > Setup DOTween 한 번 누르기.
-/// </summary>
 public class CrtPopup : MonoBehaviour
 {
     [Header("켜질 때 (초)")]

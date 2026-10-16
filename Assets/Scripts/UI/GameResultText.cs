@@ -1,19 +1,6 @@
 using TMPro;
 using UnityEngine;
 
-/// <summary>
-/// 게임이 끝났을 때 승패 텍스트 그룹을 보여준다.
-///
-///   이긴 사람 화면 : winMessage / winColor
-///   진 사람 화면   : loseMessage / loseColor
-///
-/// GameOver가 되자마자 띄우지 않고, CenterHologram의 처형 타임라인이 끝난 뒤
-/// (CenterHologram.EndGameReady) 띄운다. 값은 각자 자기 기준(내가 이겼나)으로 온다.
-///
-/// 붙이는 곳
-///   항상 켜져 있는 오브젝트에 붙인다. resultGroup은 그 오브젝트의 "자식"이어야 한다.
-///   홀로그램처럼 앞면/뒷면 텍스트가 따로 있으면 resultTexts에 전부 넣는다.
-/// </summary>
 public class GameResultText : ClientUIBase
 {
     [Header("승패 텍스트 그룹 (처형 타임라인이 끝난 뒤 켜짐)")]

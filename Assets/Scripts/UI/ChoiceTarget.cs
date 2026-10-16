@@ -1,21 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// GO / FOLD / OVERLOAD 버튼을 "조준점 + 좌클릭"으로 누르게 해주는 스크립트.
-///
-/// 왜 필요한가
-///   1인칭이라 커서가 잠겨 있으면 유니티 UI Button은 클릭을 받지 못한다.
-///   그래서 PressTarget처럼 화면 정중앙에서 레이를 쏴서 직접 판정한다.
-///
-/// 붙이는 곳
-///   selectUI 안의 각 버튼 오브젝트(GoButton / FoldButton / OverloadButton)에 하나씩.
-///   같은 오브젝트에 BoxCollider를 붙인다 (레이가 맞을 판).
-///
-/// 언제 눌리나
-///   내 자리 + talkTime + ESC 메뉴가 닫혀 있을 때만.
-///   FOLD는 남은 횟수가 있을 때만.
-///   selectUI가 꺼져 있으면 이 스크립트도 같이 꺼지므로 자동으로 안 눌린다.
-/// </summary>
 public class ChoiceTarget : ClientUIBase
 {
     [Header("이 버튼이 누구 자리 것인지 (0 또는 1) / 어떤 선택인지")]

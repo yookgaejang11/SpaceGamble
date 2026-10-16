@@ -2,18 +2,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// 좌석별 콘솔 패널. 좌석마다 하나씩 붙이고 seatIndex를 인스펙터에서 지정한다.
-///
-///   내 자리 패널   → 내 정보 (타이머, Fold 잔여, 내 선택) + 선택 버튼
-///   상대 자리 패널 → 공개해도 되는 것만
-///                    talkTime 중엔 "SELECTING" — 고민 중인 건 보이지만 내용은 모름
-///                    Open 이후엔 상대 선택
-///
-/// 두 패널이 같은 스크립트를 쓰고, IsMine으로 갈린다.
-/// 버튼(GO / FOLD / OVERLOAD)은 내 자리 패널에서만 켜지고 눌린다.
-/// Press(누르기)는 3D 오브젝트 클릭 방식이라 PressTarget.cs가 맡는다.
-/// </summary>
 public class SeatPanel : ClientUIBase
 {
     [Header("이 패널이 누구 자리인지 (0 또는 1)")]

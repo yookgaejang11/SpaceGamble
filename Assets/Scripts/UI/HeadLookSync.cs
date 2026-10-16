@@ -1,27 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
 
-/// <summary>
-/// 1인칭 시점 회전 + 머리 본 시선 동기화.
-///
-/// GameClient 프리팹에 붙이고, 인스펙터에서
-///   head   = 모델의 머리 본 Transform
-///   camRig = 1인칭 카메라 (또는 카메라의 부모)
-/// 를 물려준다.
-///
-/// 동작:
-///   - Owner      : 마우스로 yaw/pitch 계산 → 카메라 회전 + NetworkVariable에 전송
-///   - 그 외 모두 : NetworkVariable 값을 받아 머리 본에 적용 (Lerp로 부드럽게)
-///
-/// 커서 해제:
-///   HeadLookSync.SetCursorFree(true)를 부르면 커서가 풀리고 시점 회전이 멈춘다.
-///   ESC 메뉴(PauseMenu)가 이걸 부른다. 상태는 HeadLookSync.CursorFree로 읽는다.
-///
-/// NetworkTransform을 쓰지 않는 이유:
-///   애니메이터가 LateUpdate에서 본 포즈를 덮어쓰기 때문에, 본 Transform을
-///   네트워크로 직접 동기화하면 값이 지워진다. 각도만 주고받고 각 클라이언트가
-///   LateUpdate에서 직접 덮어쓰는 방식이 안전하다.
-/// </summary>
 public class HeadLookSync : NetworkBehaviour
 {
     /// <summary>true면 커서가 풀려 있다 (UI 클릭용). false면 중앙 잠금 상태</summary>

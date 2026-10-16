@@ -1,20 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// 로비 카메라의 AudioListener를 "다른 귀가 없을 때만" 켠다.
-///
-/// 왜 필요한가
-///   귀(AudioListener)는 씬에 딱 하나만 켜져 있어야 한다.
-///     2개면 → "There are 2 audio listeners" 경고
-///     0개면 → "There are no audio listeners" 경고 + 소리가 아예 안 들림
-///   방에 들어가면 내 플레이어 카메라의 귀가 켜지므로 로비 귀는 꺼야 하고,
-///   어떤 이유로든 플레이어 귀가 없으면 로비 귀가 대신 켜져서 소리가 끊기지 않게 한다.
-///
-///
-/// 붙이는 곳
-///   씬의 로비 카메라(Main Camera) — AudioListener가 붙은 그 오브젝트.
-///   이 오브젝트는 항상 켜져 있어야 한다 (꺼지면 다시 켤 수 없음).
-/// </summary>
 [RequireComponent(typeof(AudioListener))]
 public class LobbyAudioListener : MonoBehaviour
 {
@@ -31,7 +16,6 @@ public class LobbyAudioListener : MonoBehaviour
 
     void Update()
     {
-
         // 나 말고 켜진 귀가 있나?
         timer -= Time.unscaledDeltaTime;
         if (timer > 0f) return;

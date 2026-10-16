@@ -4,28 +4,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Playables;          // 게임 끝 타임라인 (PlayableDirector)
 
-/// <summary>
-/// 가운데 공용 홀로그램. 두 플레이어가 같이 보는 정보만 띄운다.
-///   - 사고 확률
-///   - 시스템 메시지
-///   - 승패
-///
-/// 양쪽에서 똑같이 읽히게 하려면:
-///   홀로그램 안에 같은 텍스트를 두 개 두고 서로 반대 방향을 보게 배치한 뒤
-///   (앞면용 / 뒷면용, Y 회전 180도 차이) 아래 배열에 둘 다 넣는다.
-///   그러면 한 번의 갱신으로 양면이 같은 내용이 된다.
-///
-/// 연출 종료 신호(EndPresentation)는 이 스크립트에서만 보낸다.
-/// 여러 곳에서 보내면 중복된다.
-///
-/// 이 스크립트가 연출의 "지휘자"다. 명세서(연출 작업 가이드) 규칙을 따른다.
-///   1) 이벤트로 온 값(카드, 선택, 결과, 확률)은 저장만 한다
-///   2) 페이즈가 RoundStart / Open / Result로 오면 코루틴을 시작하고,
-///      코루틴 안에서 글자를 공개하고 레버/버튼/사출 애니메이션 트리거를 당긴다
-///   3) 코루틴이 끝나면 EndPresentation()을 한 번만 보낸다
-///   애니메이션은 각자 화면에서만 재생한다 (NetworkAnimator 쓰지 않음).
-///   두 컴퓨터가 같은 이벤트를 받아 각자 같은 연출을 튼다.
-/// </summary>
 public class CenterHologram : ClientUIBase
 {
     /// <summary>
@@ -549,7 +527,6 @@ public class CenterHologram : ClientUIBase
     // ────────────────────────── 연출 ──────────────────────────
 
 
-
     void StartPresentation(GamePhase phase)
     {
         StopPresentation();
@@ -673,7 +650,6 @@ public class CenterHologram : ClientUIBase
 
             if (mine == Choice.Overload || opp == Choice.Overload)
             {
-
                 // 서버(GameSession.PressButton)와 똑같이 계산: 현재 확률 × 배율 → 반올림 → 0~100
                 bool both = (mine == Choice.Overload && opp == Choice.Overload);
                 var rule = GameManager.Instance != null ? GameManager.Instance.gameRule : null;

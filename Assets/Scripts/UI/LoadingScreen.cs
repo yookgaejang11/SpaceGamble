@@ -1,20 +1,6 @@
 using TMPro;
 using UnityEngine;
 
-/// <summary>
-/// 방 만들기(Create) / 참가(Join)를 누른 뒤, 내 플레이어가 생길 때까지 덮어 주는 로딩 화면.
-///
-/// 언제 보이나 (동료 코드는 건드리지 않고 상태만 읽는다)
-///   켜짐 : RelayManager.isInRoom == true  &&  GameClient.Local == null
-///          (= 방 접속은 시작했는데 아직 내 플레이어가 안 생김 → 로비 카메라 + 조준선만 보이는 그 순간)
-///   꺼짐 : 내 플레이어가 생기고(GameClient.Local) 잠깐 더 기다린 뒤 페이드 아웃
-///          접속 실패 / 방 나감(isInRoom == false)이면 바로 꺼짐
-///
-/// 붙이는 곳
-///   "항상 켜져 있는" 오브젝트 (예: UIManager)에 붙이고,
-///   로딩 화면 패널(전체 화면 Image + 글자)은 그 자식으로 만들어 Group 칸에 넣는다.
-///   패널 Canvas는 Sort Order를 제일 높게 (조준선, HUD보다 위에 그려지게).
-/// </summary>
 public class LoadingScreen : MonoBehaviour
 {
     [Header("로딩 화면")]
