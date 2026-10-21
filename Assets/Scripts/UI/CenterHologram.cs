@@ -450,7 +450,7 @@ public class CenterHologram : ClientUIBase
     {
         // [원래] SetTexts(perTexts, $"{now}%");
         // [원래] Color c = (now > before) ? warnColor : normalColor;
-        // [원래] foreach (var t in perTexts)
+        // [원래] foreach (var t in perTexts)asdfasdfadsfhlasjhweklfhksdjfhs
         // [원래]     if (t != null) t.color = c;
         pendingPer = (before, now);                             // [변경]
     }

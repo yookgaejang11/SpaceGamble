@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "fbx_mesh_count": 7,
+  "glb_mesh_count": 7,
+  "material_count": 3,
+  "total_triangles": 7662,
+  "original_vertex_positions_preserved": true,
+  "original_bounds_preserved": true,
+  "dimensions_m": [
+    0.19497527182102203,
+    0.19499795138835907,
+    0.20000001788139343
+  ],
+  "texture_dependencies": 0,
+  "unity_editor_test": "Not performed",
+  "unity_smoothness": [
+    0.78,
+    0.72,
+    0.62
+  ]
+}

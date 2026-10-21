@@ -1,0 +1,58 @@
+{
+  "mesh_count": 7,
+  "material_count": 3,
+  "original_polygons": 7662,
+  "original_triangles": 7662,
+  "geometry": "Original connected components separated, no surface cutting or reconstruction",
+  "parts": [
+    {
+      "name": "Dome_Red",
+      "vertices": 433,
+      "polygons": 544,
+      "triangles": 544,
+      "material": "M_Dome_Red"
+    },
+    {
+      "name": "Base_Black",
+      "vertices": 566,
+      "polygons": 666,
+      "triangles": 666,
+      "material": "M_Base_Black"
+    },
+    {
+      "name": "GuardRing_Upper",
+      "vertices": 1737,
+      "polygons": 1976,
+      "triangles": 1976,
+      "material": "M_Guard_Silver"
+    },
+    {
+      "name": "GuardRing_Lower",
+      "vertices": 1682,
+      "polygons": 1968,
+      "triangles": 1968,
+      "material": "M_Guard_Silver"
+    },
+    {
+      "name": "GuardArch_X",
+      "vertices": 884,
+      "polygons": 1048,
+      "triangles": 1048,
+      "material": "M_Guard_Silver"
+    },
+    {
+      "name": "GuardArch_Y",
+      "vertices": 878,
+      "polygons": 1022,
+      "triangles": 1022,
+      "material": "M_Guard_Silver"
+    },
+    {
+      "name": "GuardMountRing_Silver",
+      "vertices": 397,
+      "polygons": 438,
+      "triangles": 438,
+      "material": "M_Guard_Silver"
+    }
+  ]
+}
