@@ -36,15 +36,12 @@ public class GameClient : NetworkBehaviour
     public event Action<bool> OnGameWin;                    // 내가 이겼나
     public event Action<int> OnMyFoldLeftChanged;           // 내 Fold 잔여
     public event Action<bool> OnReadyPressed;               // 내 준비 상태
-    public event Action<int, int> OnCardsRevealed;          // [추가] 카드 공개 (내 것, 상대 것) — 선택 공개(Open) 때만 온다
+    public event Action<int, int> OnCardsRevealed;          // 카드 공개 (내 것, 상대 것) — 선택 공개(Open) 때만 온다
 
 
     GameManager gameManager;
 
     public RpcParams ToMe => RpcTarget.Single(OwnerClientId, RpcTargetUse.Temp);
-
-
-    // ────────────────────────── 생명주기 ──────────────────────────
 
     public override void OnNetworkSpawn()
     {
@@ -108,8 +105,6 @@ public class GameClient : NetworkBehaviour
         }
     }
 
-
-    // ────────────────────────── 서버 → 나 (타겟 RPC) ──────────────────────────
 
     [Rpc(SendTo.SpecifiedInParams)]
     public void ReceivePhaseRpc(GamePhase phase, RpcParams parms)
@@ -176,14 +171,11 @@ public class GameClient : NetworkBehaviour
         OnChoiceRevealed?.Invoke(mine, opponent);
     }
 
-    // ===== [추가] 카드 공개 =====
-    // 내 카드는 라운드 중엔 절대 안 온다. 선택이 끝나 공개되는 순간(EndTalk)에만 서버가 보내준다.
     [Rpc(SendTo.SpecifiedInParams)]
     public void ReceiveCardsRevealRpc(int mine, int opponent, RpcParams parms)
     {
         OnCardsRevealed?.Invoke(mine, opponent);
     }
-    // ===== [추가] 끝 =====
 
     [Rpc(SendTo.SpecifiedInParams)]
     public void ReceiveRoundResultRpc(Result result, bool isMyTurn, RpcParams parms)
@@ -209,8 +201,6 @@ public class GameClient : NetworkBehaviour
         OnGameWin?.Invoke(isWin);
     }
 
-
-    // ────────────────────────── 나 → 서버 (UI가 호출) ──────────────────────────
 
     public void RequestGo()
     {
@@ -285,28 +275,4 @@ public class GameClient : NetworkBehaviour
 
     [Rpc(SendTo.Server)]
     void EndPresentationRpc(GamePhase phase) { gameManager.NotifyPresentationEnd(myIndex.Value, phase); }
-
-
-    // ────────────────────────── 임시 디버그 UI ──────────────────────────
-
-    //    void OnGUI()
-    //    {
-    //        if (!IsOwner) return;
-
-    //        GUILayout.BeginArea(new Rect(10, 10, 220, 340));
-    //        GUILayout.Label($"P{myIndex.Value}   {curPhase}");
-    //        GUILayout.Label($"상대 카드 : {opponentCard}");
-    //        GUILayout.Label($"내 선택   : {myChoice}");
-    //        GUILayout.Label($"fold left : {foldLeft}");
-    //        GUILayout.Label($"ready     : {isReady}");
-    //        GUILayout.Label($"time      : {curTime:F1}");
-
-    //        if (GUILayout.Button("GO")) RequestGo();
-    //        if (GUILayout.Button("FOLD")) RequestFold();
-    //        if (GUILayout.Button("OVERLOAD")) RequestOverload();
-    //        if (GUILayout.Button("PRESS")) RequestPress();
-    //        if (GUILayout.Button("연출끝")) EndPresentation();
-    ////        if (GUILayout.Button("READY (F4)")) RequestReady();
-    //        GUILayout.EndArea();
-    //    }
 }

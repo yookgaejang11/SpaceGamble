@@ -132,7 +132,7 @@ public class RelayManager : MonoBehaviour
     {
         // 서버(Host) 쪽 처리는 GameManager가 한다. 여기는 클라이언트 전용.
         if (NetworkManager.Singleton.IsServer) return;
-
+        if (clientId != NetworkManager.Singleton.LocalClientId) return;
         LeaveRoom("호스트와의 연결이 끊어졌습니다.");
     }
 

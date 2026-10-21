@@ -1,26 +1,6 @@
 using TMPro;
 using UnityEngine;
 
-/// <summary>
-/// "누르기(Press)" 입력용 3D 오브젝트.
-///
-/// 내 자리에서, 내가 누를 차례(Press 페이즈 + 지목됨)일 때만 활성화된다.
-///   - 오브젝트에 조준(마우스)을 갖다 대면 hoverText가 나타난다
-///   - 그 상태로 좌클릭하면 client.RequestPress()를 보낸다
-///
-/// 조준 방식
-///   커서가 잠겨 있을 때(1인칭)  : 화면 정중앙 = 십자선 기준으로 레이캐스트
-///   커서를 풀었을 때(Tab 누름)  : 실제 마우스 위치 기준으로 레이캐스트
-///
-/// 붙이는 곳
-///   클릭될 오브젝트 "옆"의 빈 오브젝트(또는 상위 오브젝트)에 붙인다.
-///   이 스크립트가 붙은 오브젝트는 꺼지면 안 된다 (꺼지면 구독이 풀린다).
-///   보였다/숨겼다 하고 싶은 모델은 visualRoot에 따로 물린다.
-///
-/// 필요한 것
-///   hitCollider : 클릭을 받을 Collider (Is Trigger여도 됨)
-///   씬에 Collider가 있어야 레이캐스트에 잡힌다
-/// </summary>
 public class PressTarget : ClientUIBase
 {
     [Header("이 오브젝트가 누구 자리 것인지 (0 또는 1)")]
@@ -52,7 +32,6 @@ public class PressTarget : ClientUIBase
     bool IsMine => client != null && client.myIndex.Value == seatIndex;
 
 
-    // ────────────────────────── 구독 ──────────────────────────
 
     protected override void Subscribe()
     {
@@ -81,8 +60,6 @@ public class PressTarget : ClientUIBase
         SetArmed(false);
     }
 
-
-    // ────────────────────────── 상태 ──────────────────────────
 
     void HandlePhase(GamePhase phase)
     {
@@ -128,8 +105,6 @@ public class PressTarget : ClientUIBase
     }
 
 
-    // ────────────────────────── 조준 / 클릭 ──────────────────────────
-
     void Update()
     {
         if (!armed || client == null) return;
@@ -152,7 +127,6 @@ public class PressTarget : ClientUIBase
         }
     }
 
-    // ===== [추가] 조준 카메라 찾기 (ChoiceTarget과 같은 방식) =====
     /// <summary>
     /// 조준에 쓸 카메라.
     ///   1) Inspector의 cam  2) 내 플레이어 프리팹 안의 켜진 카메라  3) Camera.main
@@ -169,12 +143,10 @@ public class PressTarget : ClientUIBase
         }
         return Camera.main;
     }
-    // ===== [추가] 끝 =====
 
     bool IsAimedAt()
     {
-        // [원래] Camera c = (cam != null) ? cam : Camera.main;
-        Camera c = GetAimCamera();                                  // [변경]
+        Camera c = GetAimCamera();
         if (c == null) return false;
 
         Vector3 screenPoint = HeadLookSync.CursorFree

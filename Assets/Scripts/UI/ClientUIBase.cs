@@ -1,13 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// GameClient.Local을 구독하는 UI 스크립트들의 공통 베이스.
-///
-/// GameClient는 접속 후 스폰되므로 인스펙터로 미리 물릴 수 없다.
-/// "이미 생겼으면 바로 / 아직이면 알림 받아서" 두 경로를 여기서 한 번만 처리한다.
-///
-/// 상속받는 쪽은 Subscribe / Unsubscribe만 채우면 된다.
-/// </summary>
 public abstract class ClientUIBase : MonoBehaviour
 {
     protected GameClient client;

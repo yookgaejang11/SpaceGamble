@@ -2,32 +2,18 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// 좌석별 콘솔 패널. 좌석마다 하나씩 붙이고 seatIndex를 인스펙터에서 지정한다.
-///
-///   내 자리 패널   → 내 정보 (타이머, Fold 잔여, 내 선택) + 선택 버튼
-///   상대 자리 패널 → 공개해도 되는 것만
-///                    talkTime 중엔 "SELECTING" — 고민 중인 건 보이지만 내용은 모름
-///                    Open 이후엔 상대 선택
-///
-/// 두 패널이 같은 스크립트를 쓰고, IsMine으로 갈린다.
-/// 버튼(GO / FOLD / OVERLOAD)은 내 자리 패널에서만 켜지고 눌린다.
-/// Press(누르기)는 3D 오브젝트 클릭 방식이라 PressTarget.cs가 맡는다.
-/// </summary>
 public class SeatPanel : ClientUIBase
 {
     [Header("이 패널이 누구 자리인지 (0 또는 1)")]
     public int seatIndex;
 
-    // ===== [추가] 선택 UI / 디버그 =====
-    [Header("[추가] 선택 UI 묶음 (내 자리 + talkTime에서만 켜짐)")]
+    [Header("선택 UI 묶음 (내 자리 + talkTime에서만 켜짐)")]
     [Tooltip("이 스크립트가 붙은 오브젝트 자신/부모를 넣으면 안 된다. 형제나 다른 오브젝트를 넣을 것")]
     public GameObject selectUI;
 
-    [Header("[추가] 디버그")]
+    [Header("디버그")]
     [Tooltip("체크하면 단계가 바뀔 때마다 콘솔에 상태를 찍는다")]
     public bool debugLog = true;
-    // ===== [추가] 끝 =====
 
     [Header("텍스트")]
     public TextMeshPro timerText;       // 내 자리에서만 사용
@@ -56,9 +42,6 @@ public class SeatPanel : ClientUIBase
 
     bool IsMine => client != null && client.myIndex.Value == seatIndex;
 
-
-    // ────────────────────────── 버튼 연결 ──────────────────────────
-
     protected override void OnEnable()
     {
         base.OnEnable();
@@ -77,19 +60,16 @@ public class SeatPanel : ClientUIBase
         if (overloadButton != null) overloadButton.onClick.RemoveListener(OnOverload);
     }
 
-    // ===== [추가] 방을 나갈 때 =====
 
     /// <summary>방을 나가서 클라이언트가 사라졌을 때: 선택 UI를 끈다</summary>
     protected override void OnClientLost()
     {
-        // [원래] if (selectUI != null) selectUI.SetActive(false);
-        if (selectUI == null) return;                                   // [변경]
+        if (selectUI == null) return;
         var crt = selectUI.GetComponent<CrtPopup>();
         if (crt != null) crt.HideImmediate();                           // 방 나갈 땐 애니메이션 없이 바로
         else selectUI.SetActive(false);
     }
 
-    // ===== [추가] 선택 UI 켜기/끄기 (CrtPopup이 있으면 TV 켜지듯 연출) =====
     void SetSelectUI(bool on)
     {
         if (selectUI == null) return;
@@ -104,19 +84,12 @@ public class SeatPanel : ClientUIBase
         if (on) crt.Show();     // 이미 켜져 있으면 CrtPopup이 알아서 무시한다
         else crt.Hide();        // 이미 꺼져 있으면 CrtPopup이 알아서 무시한다
     }
-    // ===== [추가] 끝 =====
 
-    // 선택 클릭은 버튼마다 붙인 ChoiceTarget.cs가 조준점 레이캐스트로 처리한다
-    // (커서가 잠겨 있어서 UI Button의 onClick은 1인칭 중에는 불리지 않는다)
-    // ===== [추가] 끝 =====
 
     // 내 패널이 아니면 눌려도 아무 일도 하지 않는다 (안전장치)
     void OnGo() { if (IsMine) client.RequestGo(); }
     void OnFold() { if (IsMine) client.RequestFold(); }
     void OnOverload() { if (IsMine) client.RequestOverload(); }
-
-
-    // ────────────────────────── 구독 ──────────────────────────
 
     protected override void Subscribe()
     {
@@ -145,21 +118,16 @@ public class SeatPanel : ClientUIBase
     }
 
 
-    // ────────────────────────── 페이즈 ──────────────────────────
-
     void HandlePhase(GamePhase phase)
     {
         bool inGame = (phase != GamePhase.waiting && phase != GamePhase.GameOver);
         bool canChoose = IsMine && phase == GamePhase.talkTime;
 
-        // ===== [추가] 선택 UI 묶음: 내 자리 + talkTime에서만 켠다 =====
-        // [원래] if (selectUI != null) selectUI.SetActive(canChoose);
-        SetSelectUI(canChoose);                                         // [변경] TV 켜지듯 / 꺼지듯
+        SetSelectUI(canChoose);                                         // TV 켜지듯 / 꺼지듯
 
         if (debugLog)
             Debug.Log($"[SeatPanel {seatIndex}] phase={phase} myIndex={client.myIndex.Value} " +
                       $"IsMine={IsMine} canChoose={canChoose} selectUI={(selectUI != null ? selectUI.name : "NULL")}");
-        // ===== [추가] 끝 =====
 
         // 타이머와 Fold 잔여는 내 자리에만, 게임 중에만
         if (timerText != null)
@@ -204,8 +172,6 @@ public class SeatPanel : ClientUIBase
         }
     }
 
-
-    // ────────────────────────── 값 ──────────────────────────
 
     void HandleTime(float remain)
     {
@@ -253,8 +219,6 @@ public class SeatPanel : ClientUIBase
             SetChoice(present ? "" : emptyMark, dimColor);
     }
 
-
-    // ────────────────────────── 헬퍼 ──────────────────────────
 
     void ShowChoice(Choice c)
     {

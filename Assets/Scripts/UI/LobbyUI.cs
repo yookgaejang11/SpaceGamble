@@ -47,13 +47,15 @@ public class LobbyUI : MonoBehaviour
     }
 
 
-    // ────────────────────────── 알림 ──────────────────────────
-
     // 방 만들기 / 가입 실패
     void HandleConnectFailed(string reason) => ShowNotice("Connection Failed", reason);
 
     // 호스트가 나가는 등 연결이 끊겨서 방에서 나가짐
-    void HandleRoomQuited(string reason) => ShowNotice("Connection Lost", reason);
+    void HandleRoomQuited(string reason)
+    {
+        if (string.IsNullOrEmpty(reason)) return;   // 직접 나간 경우엔 팝업 없음
+        ShowNotice("연결 종료", reason);
+    }
 
     void ShowNotice(string title, string message)
     {
@@ -70,7 +72,6 @@ public class LobbyUI : MonoBehaviour
     }
 
 
-    // ────────────────────────── 버튼 ──────────────────────────
 
     public void ExitBtn()
     {
@@ -94,7 +95,7 @@ public class LobbyUI : MonoBehaviour
     {
         CloseNotice();
 
-        // [수정] CreateRoom을 한 번만 부른다 (두 번째 호출은 이미 방이 있어서 null을 돌려줬다)
+        // CreateRoom을 한 번만 부른다 (두 번째 호출은 이미 방이 있어서 null을 돌려줬다)
         string code = await RelayManager.Instance.CreateRoom();
         if (code == null) return;                       // 실패 알림은 OnRoomConnectFailed가 처리
     }

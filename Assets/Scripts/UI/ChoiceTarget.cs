@@ -1,21 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// GO / FOLD / OVERLOAD 버튼을 "조준점 + 좌클릭"으로 누르게 해주는 스크립트.
-///
-/// 왜 필요한가
-///   1인칭이라 커서가 잠겨 있으면 유니티 UI Button은 클릭을 받지 못한다.
-///   그래서 PressTarget처럼 화면 정중앙에서 레이를 쏴서 직접 판정한다.
-///
-/// 붙이는 곳
-///   selectUI 안의 각 버튼 오브젝트(GoButton / FoldButton / OverloadButton)에 하나씩.
-///   같은 오브젝트에 BoxCollider를 붙인다 (레이가 맞을 판).
-///
-/// 언제 눌리나
-///   내 자리 + talkTime + ESC 메뉴가 닫혀 있을 때만.
-///   FOLD는 남은 횟수가 있을 때만.
-///   selectUI가 꺼져 있으면 이 스크립트도 같이 꺼지므로 자동으로 안 눌린다.
-/// </summary>
 public class ChoiceTarget : ClientUIBase
 {
     [Header("이 버튼이 누구 자리 것인지 (0 또는 1) / 어떤 선택인지")]
@@ -45,7 +29,6 @@ public class ChoiceTarget : ClientUIBase
     bool hovering;
 
 
-    // ────────────────────────── 준비 ──────────────────────────
 
     void Awake()
     {
@@ -64,7 +47,6 @@ public class ChoiceTarget : ClientUIBase
     }
 
 
-    // ────────────────────────── 지금 누를 수 있나 ──────────────────────────
 
     bool IsMine => client != null && client.myIndex.Value == seatIndex;
 
@@ -75,7 +57,6 @@ public class ChoiceTarget : ClientUIBase
         && (choice != Choice.Fold || client.foldLeft > 0);
 
 
-    // ────────────────────────── 조준 / 클릭 ──────────────────────────
 
     void Update()
     {
@@ -103,7 +84,6 @@ public class ChoiceTarget : ClientUIBase
             case Choice.Fold: client.RequestFold(); break;
             case Choice.Overload: client.RequestOverload(); break;
         }
-        // 선택 강조는 SeatPanel이 OnMyChoiceChanged를 받아서 처리한다
     }
 
     /// <summary>
@@ -130,7 +110,6 @@ public class ChoiceTarget : ClientUIBase
         Camera c = GetAimCamera();
         if (c == null) return false;
 
-        // 커서가 잠겨 있으면 화면 정중앙(조준점), 풀려 있으면 마우스 위치
         Vector3 screenPoint = HeadLookSync.CursorFree
             ? Input.mousePosition
             : new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f);
@@ -141,7 +120,6 @@ public class ChoiceTarget : ClientUIBase
                              QueryTriggerInteraction.Collide))
             return false;
 
-        // 가장 먼저 맞은 게 이 버튼이어야 한다 (다른 버튼/물체에 가려지면 무시)
         return hit.collider == hitCollider;
     }
 

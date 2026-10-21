@@ -4,31 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// 게임 전체 사운드 관리자 (BGM + 효과음 + 볼륨).
-///
-/// 하는 일
-///   1) BGM: 페이즈에 맞춰 자동으로 바뀐다 (로비 / 대기 / 게임 중 / 버튼 누르기 긴장 / 게임 끝).
-///      바뀔 때 부드럽게 크로스페이드.
-///   2) 효과음: 이름으로 재생.  SoundManager.Play("lever");
-///      같은 이름에 클립을 여러 개 넣으면 랜덤으로 하나 골라 튼다 (매번 똑같지 않게).
-///      위치를 주면 3D로 그 자리에서 소리가 난다.  SoundManager.PlayAt("eject", 위치);
-///   3) 볼륨: 마스터 / BGM / 효과음을 따로 저장 (PlayerPrefs). 설정 UI 슬라이더에 연결하면 된다.
-///
-/// 붙이는 곳
-///   씬에 빈 오브젝트 "SoundManager"를 만들고 이 스크립트 하나만 붙인다. AudioSource는 자동으로 만든다.
-///   항상 켜져 있어야 한다.
-///
-/// 다른 스크립트에서 쓰는 법 (어디서든)
-///   SoundManager.Play("tick");
-///   SoundManager.PlayAt("eject", transform.position);
-///   SoundManager.Instance.SetBgmVolume(0.5f);
-/// </summary>
 public class SoundManager : ClientUIBase
 {
     public static SoundManager Instance { get; private set; }
-
-    // ────────────────────────── 효과음 목록 ──────────────────────────
 
     [Serializable]
     public class Sound
@@ -63,8 +41,6 @@ public class SoundManager : ClientUIBase
         new Sound { id = "tv_off" },
     };
 
-    // ────────────────────────── BGM ──────────────────────────
-
     [Header("BGM (비워두면 그 상황엔 이전 BGM 유지)")]
     [Tooltip("방에 들어가기 전 (로비)")]
     public AudioClip lobbyBgm;
@@ -81,8 +57,6 @@ public class SoundManager : ClientUIBase
     [Tooltip("BGM 바뀔 때 크로스페이드 시간(초)")]
     public float crossFadeTime = 1.2f;
 
-    // ────────────────────────── 볼륨 ──────────────────────────
-
     [Header("볼륨 (저장됨)")]
     [Range(0f, 1f)] public float masterVolume = 1f;
     [Range(0f, 1f)] public float bgmVolume = 1f;
@@ -94,7 +68,7 @@ public class SoundManager : ClientUIBase
     public Slider bgmSlider;
     public Slider sfxSlider;
 
-    [Header("[추가] 디버그")]
+    [Header("디버그")]
     [Tooltip("체크하면 볼륨을 바꿀 때 지금 BGM이 실제로 SoundManager에서 나오는지 콘솔에 찍는다")]
     public bool debugLog = false;
 
@@ -115,8 +89,6 @@ public class SoundManager : ClientUIBase
     readonly Dictionary<string, Sound> table = new Dictionary<string, Sound>();
 
 
-    // ────────────────────────── 준비 ──────────────────────────
-
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -135,8 +107,6 @@ public class SoundManager : ClientUIBase
         bgmVolume = PlayerPrefs.GetFloat(KeyBgm, bgmVolume);
         sfxVolume = PlayerPrefs.GetFloat(KeySfx, sfxVolume);
 
-        // [추가] 마스터 볼륨은 게임 전체 소리(AudioListener)에 건다.
-        //        SoundManager를 안 거치는 소리(씬에 따로 둔 AudioSource 등)까지 전부 같이 줄어든다
         AudioListener.volume = masterVolume;
     }
 
@@ -184,8 +154,6 @@ public class SoundManager : ClientUIBase
     }
 
 
-    // ────────────────────────── 페이즈 따라 BGM (ClientUIBase) ──────────────────────────
-
     protected override void Subscribe() { client.OnChangedPhase += HandlePhase; }
     protected override void Unsubscribe() { client.OnChangedPhase -= HandlePhase; }
     protected override void Refresh() { HandlePhase(client.curPhase); }
@@ -201,9 +169,6 @@ public class SoundManager : ClientUIBase
             default: PlayBgm(gameBgm); break;   // RoundStart, talkTime, Open, Result
         }
     }
-
-
-    // ────────────────────────── BGM ──────────────────────────
 
     /// <summary>BGM 바꾸기. 같은 곡이면 아무것도 안 한다 (처음부터 다시 틀지 않음)</summary>
     public void PlayBgm(AudioClip clip)
@@ -247,11 +212,7 @@ public class SoundManager : ClientUIBase
         fadeRoutine = null;
     }
 
-    // [원래] float BgmTarget => bgmBaseVolume * bgmVolume * masterVolume;
-    float BgmTarget => bgmBaseVolume * bgmVolume;          // [변경] 마스터는 AudioListener가 따로 곱한다
-
-
-    // ────────────────────────── 효과음 ──────────────────────────
+    float BgmTarget => bgmBaseVolume * bgmVolume;          // 마스터는 AudioListener가 따로 곱한다
 
     /// <summary>이름으로 효과음 (2D, 어디서나 같은 크기)</summary>
     public static void Play(string id) => Instance?.PlayInternal(id, null);
@@ -293,11 +254,9 @@ public class SoundManager : ClientUIBase
         src.PlayOneShot(clip, s.volume * SfxScale);
     }
 
-    // [원래] float SfxScale => sfxVolume * masterVolume;
-    float SfxScale => sfxVolume;                           // [변경] 마스터는 AudioListener가 따로 곱한다
+    float SfxScale => sfxVolume;                           // 마스터는 AudioListener가 따로 곱한다
 
 
-    // ────────────────────────── 반복 효과음 (사이렌 등) ──────────────────────────
 
     readonly Dictionary<string, AudioSource> loops = new Dictionary<string, AudioSource>();
     readonly Dictionary<string, float> loopBaseVolume = new Dictionary<string, float>();
@@ -338,11 +297,7 @@ public class SoundManager : ClientUIBase
         if (loops.TryGetValue(id, out var src) && src.isPlaying) src.Stop();
     }
 
-
-    // ────────────────────────── 볼륨 (설정 UI 슬라이더에 연결) ──────────────────────────
-
-    // [원래] public void SetMasterVolume(float v) { masterVolume = v; Save(KeyMaster, v); ApplyBgmVolume(); ApplyLoopVolume(); }
-    public void SetMasterVolume(float v) { masterVolume = v; Save(KeyMaster, v); AudioListener.volume = v; }   // [변경]
+    public void SetMasterVolume(float v) { masterVolume = v; Save(KeyMaster, v); AudioListener.volume = v; }
     public void SetBgmVolume(float v) { bgmVolume = v; Save(KeyBgm, v); ApplyBgmVolume(); }
     public void SetSfxVolume(float v) { sfxVolume = v; Save(KeySfx, v); ApplyLoopVolume(); }
 
@@ -355,8 +310,7 @@ public class SoundManager : ClientUIBase
 
     void ApplyBgmVolume()
     {
-        // [원래] if (fadeRoutine == null && activeBgm != null) activeBgm.volume = BgmTarget;
-        // [변경] 크로스페이드 중이어도 바로 반영 (페이드는 매 프레임 BgmTarget을 다시 읽으므로 안전)
+        // 크로스페이드 중이어도 바로 반영 (페이드는 매 프레임 BgmTarget을 다시 읽으므로 안전)
         if (activeBgm != null) activeBgm.volume = BgmTarget;
         if (debugLog) Debug.Log($"[SoundManager] BGM 볼륨 {BgmTarget:F2} (재생 중: {(activeBgm != null && activeBgm.isPlaying ? activeBgm.clip.name : "없음")})");
     }

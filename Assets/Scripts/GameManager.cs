@@ -202,8 +202,6 @@ public class GameManager : NetworkBehaviour
         NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
     }
 
-    // ────────────────────────── 접속 / 끊김 ──────────────────────────
-
     void OnClientConnected(ulong clientId)
     {
         if (!NetworkManager.Singleton.ConnectedClients.ContainsKey(clientId)) return;
@@ -243,8 +241,6 @@ public class GameManager : NetworkBehaviour
         ChangePhase(GamePhase.waiting);
     }
 
-
-    // ────────────────────────── 게임 흐름 ──────────────────────────
 
     public void StartGame()
     {
@@ -329,7 +325,7 @@ public class GameManager : NetworkBehaviour
         clients[0].ReceiveChoiceRevealedRpc(session.choices[0], session.choices[1], clients[0].ToMe);
         clients[1].ReceiveChoiceRevealedRpc(session.choices[1], session.choices[0], clients[1].ToMe);
 
-        // [추가] 카드 공개 — 시점 변환 (내 것, 상대 것). 연출(Open)에서 "버튼 누르기 전"에 보여준다
+        // 카드 공개 — 시점 변환 (내 것, 상대 것). 연출(Open)에서 "버튼 누르기 전"에 보여준다
         clients[0].ReceiveCardsRevealRpc(session.cardNums[0], session.cardNums[1], clients[0].ToMe);
         clients[1].ReceiveCardsRevealRpc(session.cardNums[1], session.cardNums[0], clients[1].ToMe);
 
@@ -373,9 +369,6 @@ public class GameManager : NetworkBehaviour
         if (talkTimer <= 0f)
             EndTalk();
     }
-
-
-    // ────────────────────────── 클라이언트 요청 접수 ──────────────────────────
 
     public void RequestGo(int playerIndex)
     {
@@ -448,10 +441,6 @@ public class GameManager : NetworkBehaviour
             AfterPresentationEnd();
     }
 
-    /// <summary>
-    /// 연출이 끝났을 때(양쪽 신호) 또는 타임아웃일 때 호출된다.
-    /// Invoke로도 불리므로 파라미터가 없어야 한다.
-    /// </summary>
     void AfterPresentationEnd()
     {
         CancelInvoke(nameof(AfterPresentationEnd));
@@ -464,6 +453,15 @@ public class GameManager : NetworkBehaviour
         }
     }
 
+    /// <summary>현재 사출 확률에 amount를 더한다 (0~100). 바뀐 값을 돌려준다. 게임 중이 아니면 -1</summary>
+    public int CheatAddOutPer(int amount)
+    {
+        if (!IsServer || session == null || session.isGameOver) return -1;
+        session.curOutPer = Math.Clamp(session.curOutPer + amount, 0, 100);
+        return session.curOutPer;
+    }
+    // ===== [추가] 끝 =====
+
     void BroadcastPresence()
     {
         if (clients[0] != null)
@@ -471,22 +469,4 @@ public class GameManager : NetworkBehaviour
         if (clients[1] != null)
             clients[1].ReceiveOpponentPresentRpc(clients[0] != null, clients[1].ToMe);
     }
-    // ────────────────────────── 디버그 ──────────────────────────
-
-    //void OnGUI()
-    //{
-    //    if (!IsServer) return;
-    //    if (session == null) return;
-
-    //    GUILayout.BeginArea(new Rect(470, 0, 260, 320));
-    //    GUILayout.Label("=== SERVER ===");
-    //    GUILayout.Label($"phase {curPhase}   round {session.curRound}");
-    //    GUILayout.Label($"ready : {isReady[0]} / {isReady[1]}");
-    //    GUILayout.Label($"cards : {session.cardNums[0]} / {session.cardNums[1]}");
-    //    GUILayout.Label($"choice: {session.choices[0]} / {session.choices[1]}");
-    //    GUILayout.Label($"per   : {session.curOutPer}%  (x{session.GetOverloadMul(gameRule):0.0})");
-    //    GUILayout.Label($"presser: {session.pressedPlayer}");
-    //    GUILayout.Label($"timer : {talkTimer:F1}");
-    //    GUILayout.EndArea();
-    //}
 }
