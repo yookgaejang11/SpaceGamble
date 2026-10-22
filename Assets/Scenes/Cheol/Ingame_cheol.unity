@@ -27780,6 +27780,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   channelPrefix: SG_
+  voiceTestEcho: 1
 --- !u!4 &1938906565
 Transform:
   m_ObjectHideFlags: 0
