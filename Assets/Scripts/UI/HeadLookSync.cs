@@ -74,6 +74,14 @@ public class HeadLookSync : NetworkBehaviour
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
+        if (ownerAudioListener != null)
+        {
+            foreach (var l in FindObjectsByType<AudioListener>(FindObjectsSortMode.None))
+                if (l != ownerAudioListener) l.enabled = false;
+
+            ownerAudioListener.enabled = true;
+        }
+
     }
 
     public override void OnNetworkDespawn()

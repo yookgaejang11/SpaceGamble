@@ -7,6 +7,7 @@ using Unity.Services.Core;
 using Unity.Services.Relay;
 using UnityEngine;
 using Unity.Services.Relay.Models;
+using Unity.Services.Vivox;
 public class RelayManager : MonoBehaviour
 {
     public static RelayManager Instance { get; private set; }
@@ -34,6 +35,7 @@ public class RelayManager : MonoBehaviour
 
         if (!AuthenticationService.Instance.IsSignedIn)
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
+        await VivoxService.Instance.InitializeAsync();
     }
 
     public async Task<string> CreateRoom()
