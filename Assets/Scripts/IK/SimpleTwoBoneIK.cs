@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -80,8 +81,20 @@ public class SimpleTwoBoneIK : MonoBehaviour
 
     void LateUpdate()
     {
-        if (!Application.isPlaying && !editorPreview) return;
+        if (!Application.isPlaying) return;      // 에디터는 IKPreviewDriver가 돌린다
         if (!IsValid || weight <= 0f) return;
+
+        SolveNow();
+    }
+
+    /// <summary>한 번 푼다. 에디터 미리보기에서도 이걸 부른다</summary>
+    public void SolveNow()
+    {
+        if (!IsValid || weight <= 0f) return;
+
+        // 에디터에서는 애니메이터가 포즈를 다시 깔아주지 않으므로
+        // 매번 기억해 둔 원래 포즈에서 시작해야 각도가 누적되지 않는다
+        if (!Application.isPlaying) RestoreSnapshot();
 
         Solve(root, mid, tip, target, hint,
               weight, weight * rotationWeight, weight * hintWeight);
@@ -196,18 +209,42 @@ public class SimpleTwoBoneIK : MonoBehaviour
     static readonly string[] SkipWords =
     {
         "thumb", "index", "middle", "ring", "pinky", "little", "finger",
-        "toe", "ball", "_ik", "attach", "socket", "target", "hint"
+        "toe", "ball", "attach", "socket", "target", "hint",
+        // IK 리그 잔재가 뼈로 오인되는 것을 막는다 (RightHandIK, hand_ctrl 등)
+        "ik", "rig", "ctrl", "ctl", "pole", "handle", "helper", "null"
     };
+
+    /// <summary>
+    /// 스킨 메시가 실제로 쓰는 뼈만 모은다.
+    /// 이걸로 거르면 Rig / Constraint / Target 같은 가짜가 절대 안 걸린다.
+    /// </summary>
+    static HashSet<Transform> CollectSkinBones(Transform from)
+    {
+        var set = new HashSet<Transform>();
+        foreach (var smr in from.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+        {
+            if (smr.bones == null) continue;
+            foreach (var b in smr.bones) if (b != null) set.Add(b);
+        }
+        return set;
+    }
 
     static Transform FindEndBone(Transform from, bool rightSide, bool leg)
     {
         string[] want = leg ? FootWords : HandWords;
+
+        // 스킨 뼈 목록이 있으면 거기서만 고른다
+        var skinBones = CollectSkinBones(from);
+        bool useSkinFilter = skinBones.Count > 0;
 
         Transform best = null;
         int bestDepth = int.MaxValue;
 
         foreach (var t in from.GetComponentsInChildren<Transform>(true))
         {
+            if (useSkinFilter && !skinBones.Contains(t)) continue;
+            if (t.GetComponent<SimpleTwoBoneIK>() != null) continue;
+
             string n = t.name.ToLowerInvariant();
 
             bool match = false;
@@ -226,6 +263,32 @@ public class SimpleTwoBoneIK : MonoBehaviour
             if (d < bestDepth) { bestDepth = d; best = t; }
         }
         return best;
+    }
+
+    /// <summary>
+    /// 씬에 남아 있는 IK 리그 잔재를 찾는다 (스킨 뼈가 아닌데 Rig/IK 이름을 가진 것).
+    /// 창에서 경고를 띄우는 데 쓴다.
+    /// </summary>
+    public static List<Transform> FindRigLeftovers(Transform from)
+    {
+        var result = new List<Transform>();
+        if (from == null) return result;
+
+        var skinBones = CollectSkinBones(from);
+
+        foreach (var t in from.GetComponentsInChildren<Transform>(true))
+        {
+            if (t == from) continue;
+            if (skinBones.Contains(t)) continue;
+            if (t.GetComponent<SimpleTwoBoneIK>() != null) continue;
+            if (t.GetComponentInParent<SimpleTwoBoneIK>() != null) continue;
+
+            string n = t.name.ToLowerInvariant();
+            bool looksLikeRig = n.StartsWith("rig") || n.EndsWith("ik") ||
+                                n.Contains("constraint");
+            if (looksLikeRig) result.Add(t);
+        }
+        return result;
     }
 
     /// <summary>twist / roll 같은 보조 뼈는 건너뛰고 진짜 부모를 찾는다</summary>
@@ -348,7 +411,23 @@ public class SimpleTwoBoneIK : MonoBehaviour
 
     // ────────────────────────── 씬 표시 ──────────────────────────
 
+    [Header("씬 표시")]
+    [Tooltip("체크하면 선택하지 않아도 뼈 선과 점이 보인다")]
+    public bool alwaysDrawGizmo = true;
+
+    void OnDrawGizmos()
+    {
+        if (!alwaysDrawGizmo) return;
+        DrawGizmo();
+    }
+
     void OnDrawGizmosSelected()
+    {
+        if (alwaysDrawGizmo) return;    // 이미 그렸다
+        DrawGizmo();
+    }
+
+    void DrawGizmo()
     {
         if (root == null || mid == null || tip == null) return;
 

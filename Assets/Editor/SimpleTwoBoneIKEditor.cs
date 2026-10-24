@@ -14,6 +14,10 @@ public class SimpleTwoBoneIKEditor : Editor
         var ik = (SimpleTwoBoneIK)target;
         serializedObject.Update();
 
+        if (GUILayout.Button("IK 설정 창 열기", GUILayout.Height(22)))
+            IKWindow.Open();
+        EditorGUILayout.Space(4);
+
         // ── 1. 체인 ─────────────────────────────────────
         EditorGUILayout.LabelField("1. 뼈 체인", EditorStyles.boldLabel);
 

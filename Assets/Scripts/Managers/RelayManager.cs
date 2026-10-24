@@ -35,7 +35,8 @@ public class RelayManager : MonoBehaviour
 
         if (!AuthenticationService.Instance.IsSignedIn)
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
-        await VivoxService.Instance.InitializeAsync();
+
+        await VivoxService.Instance.InitializeAsync();   // ← 추가
     }
 
     public async Task<string> CreateRoom()

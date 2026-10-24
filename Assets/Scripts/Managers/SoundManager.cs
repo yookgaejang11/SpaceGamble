@@ -62,11 +62,7 @@ public class SoundManager : ClientUIBase
     [Range(0f, 1f)] public float bgmVolume = 1f;
     [Range(0f, 1f)] public float sfxVolume = 1f;
 
-    [Header("설정창 슬라이더 (비워두면 그 슬라이더는 무시)")]
-    [Tooltip("Min 0 / Max 1로 두면 된다. 저장된 값으로 자동 초기화되고, 움직이면 바로 적용+저장")]
-    public Slider masterSlider;
-    public Slider bgmSlider;
-    public Slider sfxSlider;
+
 
     [Header("디버그")]
     [Tooltip("체크하면 볼륨을 바꿀 때 지금 BGM이 실제로 SoundManager에서 나오는지 콘솔에 찍는다")]
@@ -112,10 +108,6 @@ public class SoundManager : ClientUIBase
 
     void Start()
     {
-        BindSlider(masterSlider, masterVolume, SetMasterVolume);
-        BindSlider(bgmSlider, bgmVolume, SetBgmVolume);
-        BindSlider(sfxSlider, sfxVolume, SetSfxVolume);
-
         // 방에 들어가기 전이면 로비 BGM
         if (client == null) PlayBgm(lobbyBgm);
     }
@@ -130,12 +122,6 @@ public class SoundManager : ClientUIBase
         slider.onValueChanged.AddListener(onChanged);
     }
 
-    void UnbindSliders()
-    {
-        if (masterSlider != null) masterSlider.onValueChanged.RemoveListener(SetMasterVolume);
-        if (bgmSlider != null) bgmSlider.onValueChanged.RemoveListener(SetBgmVolume);
-        if (sfxSlider != null) sfxSlider.onValueChanged.RemoveListener(SetSfxVolume);
-    }
 
     AudioSource MakeSource(string n, bool loop, bool spatial)
     {
@@ -323,7 +309,6 @@ public class SoundManager : ClientUIBase
 
     void OnDestroy()
     {
-        UnbindSliders();
         if (Instance == this) Instance = null;
     }
 }
