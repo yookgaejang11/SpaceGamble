@@ -58,11 +58,6 @@ public class EmoteSync : NetworkBehaviour
     [Tooltip("연타 방지")]
     public float cooldown = 1.5f;
 
-    [Header("허용 페이즈 (연출 중엔 막는다)")]
-    public bool allowWaiting = true;
-    public bool allowTalkTime = true;
-    public bool allowPress = true;
-
     [Header("내 화면")]
     [Tooltip("1인칭이라 보통 끈다. 켜면 내 머리 위 말풍선도 내 화면에 보인다")]
     public bool showOwnBubble = false;
@@ -104,12 +99,8 @@ public class EmoteSync : NetworkBehaviour
 
     void Update()
     {
-        // 연출 페이즈로 넘어가면 떠 있던 말풍선을 바로 치운다 (컷신 위에 둥둥 뜨지 않게)
-        if (bubbleRoot != null && bubbleRoot.activeSelf && !PhaseAllowed()) HideNow();
-
         if (!IsOwner || !IsSpawned) return;
         if (PauseMenu.IsOpen) return;
-        if (!PhaseAllowed()) return;
         if (Time.time - lastSendTime < cooldown) return;
 
         for (int i = 0; i < emotes.Length; i++)
@@ -122,26 +113,6 @@ public class EmoteSync : NetworkBehaviour
             break;
         }
     }
-
-    /// <summary>
-    /// 지금 감정표현을 써도 되는 페이즈인가.
-    /// 상대 우주인 오브젝트의 curPhase는 갱신되지 않으므로 내 클라이언트(GameClient.Local)의 페이즈를 본다.
-    /// </summary>
-    bool PhaseAllowed()
-    {
-        var local = GameClient.Local;
-        if (local == null) return false;
-
-        switch (local.curPhase)
-        {
-            case GamePhase.waiting: return allowWaiting;
-            case GamePhase.talkTime: return allowTalkTime;
-            case GamePhase.Press: return allowPress;
-            default: return false;          // RoundStart / Open / Result / GameOver = 연출 중
-        }
-    }
-
-
 
     [Rpc(SendTo.Server)]
     void RequestEmoteRpc(int id)
@@ -157,7 +128,6 @@ public class EmoteSync : NetworkBehaviour
     void ShowEmoteRpc(int id)
     {
         if (id < 0 || id >= emotes.Length || emotes[id] == null) return;
-        if (!PhaseAllowed()) return;                // 도착했을 때 이미 연출이 시작됐으면 무시
 
         // 음성: 내 것도 들린다 (보냈다는 확인 겸)
         if (playVoice) PlayVoice(emotes[id]);

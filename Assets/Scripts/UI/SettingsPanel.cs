@@ -30,6 +30,13 @@ public class SettingsPanel : MonoBehaviour
     [Tooltip("마이크 장치 선택")]
     public TMP_Dropdown deviceDropdown;
 
+    [Header("── 스피커 ──")]
+    [Tooltip("소리가 나올 장치 선택")]
+    public TMP_Dropdown outputDeviceDropdown;
+
+    [Tooltip("장치 목록 다시 읽기 (헤드셋을 꽂은 뒤 누른다)")]
+    public Button refreshDevicesButton;
+
     [Header("── 음성 볼륨 ──")]
     [Tooltip("내 마이크 입력 (-50 ~ 50)")]
     public Slider inputVolumeSlider;
@@ -51,14 +58,23 @@ public class SettingsPanel : MonoBehaviour
 
     [Header("문구")]
     public string waitingKeyText = "키를 누르세요...";
-    public string notConnectedText = "방에 들어가면 사용할 수 있습니다";
+    public string notConnectedText = "음성 서비스 연결 중...";
     [Tooltip("방 밖일 때 흐리게 할 묶음. 없으면 비워두기")]
     public CanvasGroup voiceGroup;
     public TextMeshProUGUI voiceStatusLabel;
 
+    [Header("장치 목록")]
+    [Tooltip("창이 열려 있는 동안 이 간격(초)마다 장치 목록을 다시 확인한다. 0이면 안 함.\n" +
+             "새로고침 버튼을 안 쓸 때 필요하다")]
+    public float deviceCheckInterval = 2f;
+
     bool waitingForKey;
     float shownLevel;
     bool built;
+
+    float nextDeviceCheck;
+    readonly List<string> lastInNames = new List<string>();
+    readonly List<string> lastOutNames = new List<string>();
 
 
     // ────────────────────────── 켜고 끄기 ──────────────────────────
@@ -66,6 +82,7 @@ public class SettingsPanel : MonoBehaviour
     void OnEnable()
     {
         Build();
+        nextDeviceCheck = 0f;      // 열자마자 한 번 확인
         RefreshAll();
 
         if (VoiceManager.Instance != null)
@@ -90,7 +107,7 @@ public class SettingsPanel : MonoBehaviour
         if (micModeDropdown != null)
         {
             micModeDropdown.ClearOptions();
-            micModeDropdown.AddOptions(new List<string> { "오픈 마이크", "눌러서 말하기" });
+            micModeDropdown.AddOptions(new List<string> { "Open Mic", "Input Mic" });
             micModeDropdown.onValueChanged.AddListener(OnMicModeChanged);
         }
 
@@ -101,7 +118,13 @@ public class SettingsPanel : MonoBehaviour
             selfMuteToggle.onValueChanged.AddListener(OnSelfMuteChanged);
 
         if (deviceDropdown != null)
-            deviceDropdown.onValueChanged.AddListener(OnDeviceChanged);
+            deviceDropdown.onValueChanged.AddListener(OnInputDeviceChanged);
+
+        if (outputDeviceDropdown != null)
+            outputDeviceDropdown.onValueChanged.AddListener(OnOutputDeviceChanged);
+
+        if (refreshDevicesButton != null)
+            refreshDevicesButton.onClick.AddListener(RefreshDeviceLists);
 
         SetupVolumeSlider(inputVolumeSlider, OnInputVolumeChanged);
         SetupVolumeSlider(opponentVolumeSlider, OnOpponentVolumeChanged);
@@ -141,7 +164,8 @@ public class SettingsPanel : MonoBehaviour
     {
         var vm = VoiceManager.Instance;
 
-        bool usable = vm != null && vm.IsConnected;
+        // 장치와 볼륨은 방에 안 들어가도 쓸 수 있다 (Vivox 초기화만 되면 됨)
+        bool usable = vm != null && vm.VivoxReady;
         if (voiceGroup != null)
         {
             voiceGroup.alpha = usable ? 1f : 0.45f;
@@ -169,25 +193,49 @@ public class SettingsPanel : MonoBehaviour
             opponentVolumeSlider.SetValueWithoutNotify(vm.opponentVolume);
 
         UpdateVolumeLabels();
-        RefreshDeviceList();
+        RefreshDeviceLists();
     }
 
-    void RefreshDeviceList()
+    void RefreshDeviceLists()
     {
-        if (deviceDropdown == null) return;
-
         var vm = VoiceManager.Instance;
-        if (vm == null || !vm.IsConnected)
+        // 장치와 볼륨은 방에 안 들어가도 쓸 수 있다 (Vivox 초기화만 되면 됨)
+        bool usable = vm != null && vm.VivoxReady;
+
+        FillDevices(deviceDropdown, usable ? vm.GetInputDeviceNames() : null,
+                    usable ? vm.GetInputDeviceIndex() : 0);
+
+        FillDevices(outputDeviceDropdown, usable ? vm.GetOutputDeviceNames() : null,
+                    usable ? vm.GetOutputDeviceIndex() : 0);
+
+        // 다음 확인 때 비교할 수 있게 기억해 둔다
+        lastInNames.Clear();
+        lastOutNames.Clear();
+        if (usable)
         {
-            deviceDropdown.ClearOptions();
-            deviceDropdown.interactable = false;
+            lastInNames.AddRange(vm.GetInputDeviceNames());
+            lastOutNames.AddRange(vm.GetOutputDeviceNames());
+        }
+
+        if (refreshDevicesButton != null) refreshDevicesButton.interactable = usable;
+    }
+
+    static void FillDevices(TMP_Dropdown dd, List<string> names, int selected)
+    {
+        if (dd == null) return;
+
+        dd.ClearOptions();
+
+        if (names == null || names.Count == 0)
+        {
+            dd.interactable = false;
             return;
         }
 
-        var names = vm.GetInputDeviceNames();
-        deviceDropdown.ClearOptions();
-        deviceDropdown.AddOptions(names);
-        deviceDropdown.interactable = names.Count > 0;
+        dd.AddOptions(names);
+        dd.SetValueWithoutNotify(Mathf.Clamp(selected, 0, names.Count - 1));
+        dd.RefreshShownValue();
+        dd.interactable = true;
     }
 
     void UpdateKeyLabel()
@@ -210,7 +258,7 @@ public class SettingsPanel : MonoBehaviour
     }
 
     /// <summary>-50~50을 0~100처럼 읽기 쉽게 바꾼다</summary>
-    static string Pretty(int v) => Mathf.RoundToInt((v + 50) ) + "%";
+    static string Pretty(int v) => Mathf.RoundToInt((v + 50)) + "%";
 
 
     // ────────────────────────── 입력 처리 ──────────────────────────
@@ -219,6 +267,36 @@ public class SettingsPanel : MonoBehaviour
     {
         if (waitingForKey) CaptureKey();
         UpdateLevelBar();
+        CheckDevicesPeriodically();
+    }
+
+    /// <summary>
+    /// 장치 목록을 주기적으로 확인한다.
+    /// 바뀐 게 없으면 손대지 않는다 — 매번 다시 채우면 고르는 중에 선택이 튄다.
+    /// </summary>
+    void CheckDevicesPeriodically()
+    {
+        if (deviceCheckInterval <= 0f) return;
+        if (Time.unscaledTime < nextDeviceCheck) return;
+        nextDeviceCheck = Time.unscaledTime + deviceCheckInterval;
+
+        var vm = VoiceManager.Instance;
+        if (vm == null || !vm.VivoxReady) return;
+
+        var inNames = vm.GetInputDeviceNames();
+        var outNames = vm.GetOutputDeviceNames();
+
+        if (Same(inNames, lastInNames) && Same(outNames, lastOutNames)) return;
+
+        RefreshDeviceLists();
+    }
+
+    static bool Same(List<string> a, List<string> b)
+    {
+        if (a.Count != b.Count) return false;
+        for (int i = 0; i < a.Count; i++)
+            if (a[i] != b[i]) return false;
+        return true;
     }
 
     void UpdateLevelBar()
@@ -278,7 +356,9 @@ public class SettingsPanel : MonoBehaviour
 
     void OnSelfMuteChanged(bool on) => VoiceManager.Instance?.SetSelfMuted(on);
 
-    void OnDeviceChanged(int index) => VoiceManager.Instance?.SetInputDevice(index);
+    void OnInputDeviceChanged(int index) => VoiceManager.Instance?.SetInputDevice(index);
+
+    void OnOutputDeviceChanged(int index) => VoiceManager.Instance?.SetOutputDevice(index);
 
     void OnInputVolumeChanged(float v)
     {

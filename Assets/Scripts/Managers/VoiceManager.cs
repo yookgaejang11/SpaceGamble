@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.Services.Authentication;
+using Unity.Services.Core;
 using Unity.Services.Vivox;
 using UnityEngine;
 
@@ -45,6 +47,12 @@ public class VoiceManager : MonoBehaviour
 
     // ────────────────────────── 상태 (UI가 읽는 값) ──────────────────────────
 
+    /// <summary>음성 채팅을 쓰는가 (끄면 채널에 아예 안 들어간다)</summary>
+    public bool VoiceEnabled { get; private set; } = true;
+
+    /// <summary>Vivox 초기화가 끝났는가. 장치 목록은 이때부터 읽을 수 있다 (방에 안 들어가도 됨)</summary>
+    public bool VivoxReady { get; private set; }
+
     /// <summary>음성 채널에 들어가 있는가</summary>
     public bool IsConnected { get; private set; }
 
@@ -74,7 +82,10 @@ public class VoiceManager : MonoBehaviour
     const string KeyIn = "voice_in_vol";
     const string KeyOpp = "voice_opp_vol";
     const string KeyMute = "voice_self_muted";
-    const string KeyDevice = "voice_in_device";
+    const string KeyInDevice = "voice_in_device";
+    const string KeyOutDevice = "voice_out_device";
+    const string KeyOutDev = "voice_out_device";
+    const string KeyEnabled = "voice_enabled";
 
     string joinedChannel;
     VivoxParticipant self;
@@ -93,13 +104,49 @@ public class VoiceManager : MonoBehaviour
 
     void Start()
     {
-        if (RelayManager.Instance == null)
+        if (RelayManager.Instance != null)
         {
-            Debug.LogError("[Voice] RelayManager가 씬에 없습니다.", this);
-            return;
+            RelayManager.Instance.OnRoomConnectSuccessed += HandleJoined;
+            RelayManager.Instance.OnRoomQuited += HandleQuit;
         }
-        RelayManager.Instance.OnRoomConnectSuccessed += HandleJoined;
-        RelayManager.Instance.OnRoomQuited += HandleQuit;
+        else Debug.LogError("[Voice] RelayManager가 씬에 없습니다.", this);
+
+        // 방에 들어가기 전에도 장치 목록을 읽을 수 있어야 하므로 여기서 초기화한다
+        _ = InitVivoxAsync();
+    }
+
+
+    /// <summary>
+    /// Vivox 초기화. 여러 번 불러도 한 번만 한다.
+    /// RelayManager.InitAsync에 VivoxService.InitializeAsync를 안 넣었어도 여기서 처리된다.
+    /// </summary>
+    public async Task InitVivoxAsync()
+    {
+        if (VivoxReady) return;
+
+        try
+        {
+            if (UnityServices.State != ServicesInitializationState.Initialized)
+                await UnityServices.InitializeAsync();
+
+            if (!AuthenticationService.Instance.IsSignedIn)
+                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
+            await VivoxService.Instance.InitializeAsync();
+
+            VivoxReady = true;
+            Log("Vivox 초기화 완료 ? 장치 목록 사용 가능");
+
+            ApplyInputVolume();
+            await ApplySavedDevicesAsync();
+
+            OnVoiceStateChanged?.Invoke();
+        }
+        catch (Exception e)
+        {
+            // 음성이 안 되는 건 게임을 막을 이유가 아니다
+            Debug.LogWarning($"[Voice] Vivox 초기화 실패: {e.Message}", this);
+        }
     }
 
     void OnDestroy()
@@ -131,8 +178,13 @@ public class VoiceManager : MonoBehaviour
     {
         try
         {
+            if (!VoiceEnabled) { Log("음성 채팅이 꺼져 있어 접속하지 않는다"); return; }
+
             string code = RelayManager.Instance.joinCode;
             if (string.IsNullOrEmpty(code)) return;
+
+            await InitVivoxAsync();
+            if (!VivoxReady) return;
 
             if (!VivoxService.Instance.IsLoggedIn)
             {
@@ -153,7 +205,7 @@ public class VoiceManager : MonoBehaviour
             IsConnected = true;
             ApplyInputVolume();
             ApplyMicState();
-            await ApplySavedDeviceAsync();
+            await ApplySavedDevicesAsync();
 
             Log($"채널 접속: {joinedChannel}");
             OnVoiceStateChanged?.Invoke();
@@ -287,6 +339,27 @@ public class VoiceManager : MonoBehaviour
         OnVoiceStateChanged?.Invoke();
     }
 
+    /// <summary>
+    /// 음성 채팅 자체를 켜고 끈다.
+    /// 끄면 채널에서 나가고, 방에 들어가도 접속하지 않는다.
+    /// </summary>
+    public void SetVoiceEnabled(bool on)
+    {
+        if (VoiceEnabled == on) return;
+
+        VoiceEnabled = on;
+        PlayerPrefs.SetInt(KeyEnabled, on ? 1 : 0);
+        PlayerPrefs.Save();
+
+        bool inRoom = RelayManager.Instance != null && RelayManager.Instance.isInRoom;
+
+        if (!on && IsConnected) _ = DisconnectAsync();
+        else if (on && inRoom && !IsConnected) _ = ConnectAsync();
+
+        Log($"음성 채팅 {(on ? "켜짐" : "꺼짐")}");
+        OnVoiceStateChanged?.Invoke();
+    }
+
     public void SetSelfMuted(bool muted)
     {
         SelfMuted = muted;
@@ -314,7 +387,7 @@ public class VoiceManager : MonoBehaviour
 
     void ApplyInputVolume()
     {
-        if (!IsConnected) return;
+        if (!VivoxReady) return;
         try { VivoxService.Instance.SetInputDeviceVolume(inputVolume); }
         catch (Exception e) { Debug.LogWarning($"[Voice] 입력 볼륨 실패: {e.Message}", this); }
     }
@@ -327,20 +400,58 @@ public class VoiceManager : MonoBehaviour
     }
 
 
-    // ────────────────────────── 마이크 장치 ──────────────────────────
+    // ────────────────────────── 장치 ──────────────────────────
+    //
+    // 장치 이름을 읽는 곳은 DeviceLabel 하나뿐이다.
+    // SDK 버전 때문에 이름이 다르면 여기 한 줄만 고치면 된다.
 
-    /// <summary>쓸 수 있는 마이크 이름 목록. 설정 창의 드롭다운에 넣는다</summary>
+    static string DeviceLabel(VivoxInputDevice d) => d.DeviceName;
+    static string DeviceLabel(VivoxOutputDevice d) => d.DeviceName;
+
+
+    /// <summary>마이크 목록. 설정 창 드롭다운에 넣는다</summary>
     public List<string> GetInputDeviceNames()
     {
         var names = new List<string>();
+        if (!VivoxReady) return names;
         try
         {
             foreach (var d in VivoxService.Instance.AvailableInputDevices)
-                names.Add(d.DeviceName);
+                names.Add(DeviceLabel(d));
         }
-        catch (Exception e) { Debug.LogWarning($"[Voice] 장치 목록 실패: {e.Message}", this); }
+        catch (Exception e) { Debug.LogWarning($"[Voice] 마이크 목록 실패: {e.Message}", this); }
         return names;
     }
+
+    /// <summary>스피커 목록</summary>
+    public List<string> GetOutputDeviceNames()
+    {
+        var names = new List<string>();
+        if (!VivoxReady) return names;
+        try
+        {
+            foreach (var d in VivoxService.Instance.AvailableOutputDevices)
+                names.Add(DeviceLabel(d));
+        }
+        catch (Exception e) { Debug.LogWarning($"[Voice] 스피커 목록 실패: {e.Message}", this); }
+        return names;
+    }
+
+    /// <summary>지금 고른 마이크가 목록에서 몇 번째인가 (드롭다운 초기값용)</summary>
+    public int GetInputDeviceIndex() => IndexOfSaved(GetInputDeviceNames(), KeyInDevice);
+
+    /// <summary>지금 고른 스피커가 목록에서 몇 번째인가</summary>
+    public int GetOutputDeviceIndex() => IndexOfSaved(GetOutputDeviceNames(), KeyOutDevice);
+
+    static int IndexOfSaved(List<string> names, string prefKey)
+    {
+        string want = PlayerPrefs.GetString(prefKey, "");
+        if (string.IsNullOrEmpty(want)) return 0;
+
+        int i = names.IndexOf(want);
+        return i >= 0 ? i : 0;
+    }
+
 
     public async void SetInputDevice(int index)
     {
@@ -351,26 +462,52 @@ public class VoiceManager : MonoBehaviour
 
             await VivoxService.Instance.SetActiveInputDeviceAsync(devices[index]);
 
-            PlayerPrefs.SetString(KeyDevice, devices[index].DeviceName);
+            PlayerPrefs.SetString(KeyInDevice, DeviceLabel(devices[index]));
             PlayerPrefs.Save();
-            Log($"마이크 장치: {devices[index].DeviceName}");
+            Log($"마이크: {DeviceLabel(devices[index])}");
         }
-        catch (Exception e) { Debug.LogWarning($"[Voice] 장치 변경 실패: {e.Message}", this); }
+        catch (Exception e) { Debug.LogWarning($"[Voice] 마이크 변경 실패: {e.Message}", this); }
     }
 
-    async Task ApplySavedDeviceAsync()
+    public async void SetOutputDevice(int index)
     {
-        string want = PlayerPrefs.GetString(KeyDevice, "");
-        if (string.IsNullOrEmpty(want)) return;
-
         try
         {
-            foreach (var d in VivoxService.Instance.AvailableInputDevices)
-            {
-                if (d.DeviceName != want) continue;
-                await VivoxService.Instance.SetActiveInputDeviceAsync(d);
-                return;
-            }
+            var devices = VivoxService.Instance.AvailableOutputDevices;
+            if (index < 0 || index >= devices.Count) return;
+
+            await VivoxService.Instance.SetActiveOutputDeviceAsync(devices[index]);
+
+            PlayerPrefs.SetString(KeyOutDevice, DeviceLabel(devices[index]));
+            PlayerPrefs.Save();
+            Log($"스피커: {DeviceLabel(devices[index])}");
+        }
+        catch (Exception e) { Debug.LogWarning($"[Voice] 스피커 변경 실패: {e.Message}", this); }
+    }
+
+
+    /// <summary>저장해 둔 장치를 다시 고른다. 채널 접속 직후 호출</summary>
+    async Task ApplySavedDevicesAsync()
+    {
+        try
+        {
+            string wantIn = PlayerPrefs.GetString(KeyInDevice, "");
+            if (!string.IsNullOrEmpty(wantIn))
+                foreach (var d in VivoxService.Instance.AvailableInputDevices)
+                    if (DeviceLabel(d) == wantIn)
+                    {
+                        await VivoxService.Instance.SetActiveInputDeviceAsync(d);
+                        break;
+                    }
+
+            string wantOut = PlayerPrefs.GetString(KeyOutDevice, "");
+            if (!string.IsNullOrEmpty(wantOut))
+                foreach (var d in VivoxService.Instance.AvailableOutputDevices)
+                    if (DeviceLabel(d) == wantOut)
+                    {
+                        await VivoxService.Instance.SetActiveOutputDeviceAsync(d);
+                        break;
+                    }
         }
         catch (Exception e) { Debug.LogWarning($"[Voice] 저장된 장치 적용 실패: {e.Message}", this); }
     }
@@ -385,6 +522,7 @@ public class VoiceManager : MonoBehaviour
         inputVolume = PlayerPrefs.GetInt(KeyIn, inputVolume);
         opponentVolume = PlayerPrefs.GetInt(KeyOpp, opponentVolume);
         SelfMuted = PlayerPrefs.GetInt(KeyMute, 0) == 1;
+        VoiceEnabled = PlayerPrefs.GetInt(KeyEnabled, 1) == 1;
     }
 
     void Log(string msg)

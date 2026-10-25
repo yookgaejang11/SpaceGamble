@@ -18,7 +18,7 @@ MonoBehaviour:
     MainTabIndex:
       valueInternal: 0
     PoseToolPivotMode:
-      valueInternal: 1
+      valueInternal: 0
     PoseToolMode:
       valueInternal: 1
     PoseMirrorMode:
@@ -28,7 +28,7 @@ MonoBehaviour:
     ConfigToolPivotMode:
       valueInternal: 0
     ConfigToolMode:
-      valueInternal: 2
+      valueInternal: 1
     OpenedClipIndex:
       valueInternal: 0
     SelectedFrame:
@@ -38,7 +38,7 @@ MonoBehaviour:
     FramesScrollPosition:
       valueInternal: -40
     FramesZoom:
-      valueInternal: 0.7585778
+      valueInternal: 0.75857776
     PropertiesScrollPosition:
       valueInternal: 0
     PropertiesZoom:
