@@ -1149,9 +1149,6 @@ MonoBehaviour:
   popTime: 0.2
   fadeTime: 0.3
   cooldown: 1.5
-  allowWaiting: 1
-  allowTalkTime: 1
-  allowPress: 1
   showOwnBubble: 0
   ownerFeedbackText: {fileID: 0}
   sndEmote: 
@@ -2542,6 +2539,7 @@ GameObject:
   - component: {fileID: 7668078321515431567}
   - component: {fileID: 8122791046014482399}
   - component: {fileID: 4277730997335952695}
+  - component: {fileID: 1476305903358131490}
   m_Layer: 0
   m_Name: Camera
   m_TagString: MainCamera
@@ -2667,6 +2665,23 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!114 &1476305903358131490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7693681632268051804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IsGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: 8ab525268eaa34a47a3e56778d9b099b, type: 2}
 --- !u!1 &7880058087247485450
 GameObject:
   m_ObjectHideFlags: 0
