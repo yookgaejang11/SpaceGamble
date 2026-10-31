@@ -57,6 +57,7 @@ public class GameSession
 
     System.Random rand = new System.Random();
 
+
     public void StartRound()
     {
         pressedPlayer = -1;
@@ -148,7 +149,7 @@ public class GameSession
 public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance { get; private set; }
-
+    [SerializeField] GameObject CrossHair;
     [Header("규칙")]
     public GamePer SOGameRule;
     [HideInInspector] public GamePer gameRule;
@@ -273,6 +274,12 @@ public class GameManager : NetworkBehaviour
         curPhase = phase;
 
         bool readyPhase = (phase == GamePhase.waiting || phase == GamePhase.GameOver);
+
+
+        if(phase == GamePhase.RoundStart)
+        {
+            CrossHair.SetActive(true);
+        }
 
         for (int i = 0; i < 2; i++)
         {

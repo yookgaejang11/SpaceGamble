@@ -200,7 +200,7 @@ public class CenterHologram : ClientUIBase
     public string sndCharge = "charge";
     public string sndEject = "eject";
     public string sndSafe = "safe";
-
+    public string button_Push = "Button_Push";
     [Header("디버그")]
     public bool debugLog = false;
 
@@ -743,7 +743,10 @@ public class CenterHologram : ClientUIBase
             Trigger(GetAstronautAnimator(presserSeat), astronautPressTrigger);
 
         if (presserSeat >= 0 && presserSeat < pressButtonAnimators.Length)
+        {
             TriggerLater(pressButtonAnimators[presserSeat], pressTrigger, buttonDelay);
+            PlayLater(button_Push,buttonDelay);
+        }
 
         SetMessage("EJECTION SYSTEM CHARGING...", warnColor);
         Play(sndCharge);
@@ -1186,7 +1189,7 @@ public class CenterHologram : ClientUIBase
     static string ChoiceLabel(Choice c) =>
         c == Choice.Go ? "GO" : c == Choice.Fold ? "FOLD" : "OVERLOAD";
 
-    // Animator가 비어 있거나 꺼져 있으면 조용히 넘어간다
+    // Animator가 비어 있거나 꺼져 있으면 조용히 넘어간다(애니메이터 트리거
     static void Trigger(Animator a, string trigger)
     {
         if (a == null || !a.isActiveAndEnabled || string.IsNullOrEmpty(trigger)) return;
@@ -1226,6 +1229,7 @@ public class CenterHologram : ClientUIBase
     {
         if (!string.IsNullOrEmpty(id)) SoundManager.Play(id);
     }
+
 
     void Log(string msg)
     {
