@@ -889,7 +889,6 @@ public class CenterHologram : ClientUIBase
         if (flownLook != null) flownLook.enabled = false;
 
         flownAnim = target.GetComponentInChildren<Animator>();
-
         // 아직 소비 안 된 트리거(Press/Pull)가 남아 있으면 날아가는 도중에 그 동작이 다시 나온다 → 지운다
         if (flownAnim != null)
         {
