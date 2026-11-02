@@ -200,7 +200,7 @@ public class CenterHologram : ClientUIBase
     public string sndCharge = "charge";
     public string sndEject = "eject";
     public string sndSafe = "safe";
-
+    public string button_Push = "Button_Push";
     [Header("디버그")]
     public bool debugLog = false;
 
@@ -395,7 +395,7 @@ public class CenterHologram : ClientUIBase
         Trigger(leverAnimators[seat], leverTrigger);
 
         if (!leverSoundDone) { leverSoundDone = true; Play(sndLever); }   // 두 자리가 동시라 소리는 한 번만
-        Log($"레버 이벤트: 자리 {seat}");
+        Log($"레버 이벤트: 자리 {seat} {Time.time:F2}");
     }
 
 
@@ -578,7 +578,7 @@ public class CenterHologram : ClientUIBase
             // 이벤트 방식: 우주인만 출발시키고, 레버는 클립 이벤트(OnLeverPull)가 오면 HandleLeverPulled가 움직인다
             Trigger(GetAstronautAnimator(0), astronautPullTrigger);
             Trigger(GetAstronautAnimator(1), astronautPullTrigger);
-
+            Log($"우주인 Pull 트리거 {Time.time:F2}");
             float waited = 0f;
             while (!leverEventArrived && waited < leverEventTimeout)
             {
@@ -743,7 +743,10 @@ public class CenterHologram : ClientUIBase
             Trigger(GetAstronautAnimator(presserSeat), astronautPressTrigger);
 
         if (presserSeat >= 0 && presserSeat < pressButtonAnimators.Length)
+        {
             TriggerLater(pressButtonAnimators[presserSeat], pressTrigger, buttonDelay);
+            PlayLater(button_Push,buttonDelay);
+        }
 
         SetMessage("EJECTION SYSTEM CHARGING...", warnColor);
         Play(sndCharge);
@@ -886,7 +889,6 @@ public class CenterHologram : ClientUIBase
         if (flownLook != null) flownLook.enabled = false;
 
         flownAnim = target.GetComponentInChildren<Animator>();
-
         // 아직 소비 안 된 트리거(Press/Pull)가 남아 있으면 날아가는 도중에 그 동작이 다시 나온다 → 지운다
         if (flownAnim != null)
         {
@@ -1186,7 +1188,7 @@ public class CenterHologram : ClientUIBase
     static string ChoiceLabel(Choice c) =>
         c == Choice.Go ? "GO" : c == Choice.Fold ? "FOLD" : "OVERLOAD";
 
-    // Animator가 비어 있거나 꺼져 있으면 조용히 넘어간다
+    // Animator가 비어 있거나 꺼져 있으면 조용히 넘어간다(애니메이터 트리거
     static void Trigger(Animator a, string trigger)
     {
         if (a == null || !a.isActiveAndEnabled || string.IsNullOrEmpty(trigger)) return;
@@ -1226,6 +1228,7 @@ public class CenterHologram : ClientUIBase
     {
         if (!string.IsNullOrEmpty(id)) SoundManager.Play(id);
     }
+
 
     void Log(string msg)
     {

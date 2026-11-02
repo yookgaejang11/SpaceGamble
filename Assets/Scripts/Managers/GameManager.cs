@@ -57,6 +57,7 @@ public class GameSession
 
     System.Random rand = new System.Random();
 
+
     public void StartRound()
     {
         pressedPlayer = -1;
@@ -148,7 +149,6 @@ public class GameSession
 public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance { get; private set; }
-
     [Header("규칙")]
     public GamePer SOGameRule;
     [HideInInspector] public GamePer gameRule;
