@@ -162,7 +162,6 @@ public class SeatBoard : ClientUIBase
                 myLocked = true;
                 SetMine(hiddenMark, normalColor);
                 Punch(MyTexts);
-                Play(lockClip);
             }
 
             // 아직 도는 칸들에 랜덤 숫자 (직전 숫자와 겹치지 않게 해서 '바뀌는 느낌'을 살린다)

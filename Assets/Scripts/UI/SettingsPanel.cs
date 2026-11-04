@@ -16,6 +16,9 @@ using UnityEngine.UI;
 /// </summary>
 public class SettingsPanel : MonoBehaviour
 {
+    [Header("설정 창")]
+    [SerializeField] GameObject SettingsUI;
+
     [Header("── 마이크 ──")]
     [Tooltip("오픈 마이크 / 눌러서 말하기")]
     public TMP_Dropdown micModeDropdown;
@@ -72,6 +75,11 @@ public class SettingsPanel : MonoBehaviour
     float shownLevel;
     bool built;
 
+    // 패널이 매니저보다 먼저 켜져도 나중에 알아채기 위해 기억해 둔다
+    VoiceManager boundVoice;
+    SoundManager boundSound;
+    bool lastUsable;
+
     float nextDeviceCheck;
     readonly List<string> lastInNames = new List<string>();
     readonly List<string> lastOutNames = new List<string>();
@@ -83,18 +91,45 @@ public class SettingsPanel : MonoBehaviour
     {
         Build();
         nextDeviceCheck = 0f;      // 열자마자 한 번 확인
+        BindManagers();
         RefreshAll();
-
-        if (VoiceManager.Instance != null)
-            VoiceManager.Instance.OnVoiceStateChanged += RefreshAll;
     }
 
     void OnDisable()
     {
         waitingForKey = false;
 
-        if (VoiceManager.Instance != null)
-            VoiceManager.Instance.OnVoiceStateChanged -= RefreshAll;
+        if (boundVoice != null)
+            boundVoice.OnVoiceStateChanged -= RefreshAll;
+        boundVoice = null;
+        boundSound = null;
+    }
+
+    
+
+    /// <summary>지금 있는 매니저에 연결한다. 이벤트 중복 구독을 막기 위해 바뀌었을 때만 다시 건다</summary>
+    void BindManagers()
+    {
+        var vm = VoiceManager.Instance;
+        if (vm != boundVoice)
+        {
+            if (boundVoice != null) boundVoice.OnVoiceStateChanged -= RefreshAll;
+            boundVoice = vm;
+            if (vm != null) vm.OnVoiceStateChanged += RefreshAll;
+        }
+        boundSound = SoundManager.Instance;
+    }
+
+    /// <summary>창이 켜져 있는 동안 매니저가 생기거나 Vivox가 준비되면 화면을 다시 맞춘다</summary>
+    void WatchManagers()
+    {
+        var vm = VoiceManager.Instance;
+        bool usable = vm != null && vm.VivoxReady;
+
+        if (vm == boundVoice && SoundManager.Instance == boundSound && usable == lastUsable) return;
+
+        BindManagers();
+        RefreshAll();
     }
 
 
@@ -129,13 +164,10 @@ public class SettingsPanel : MonoBehaviour
         SetupVolumeSlider(inputVolumeSlider, OnInputVolumeChanged);
         SetupVolumeSlider(opponentVolumeSlider, OnOpponentVolumeChanged);
 
-        var sm = SoundManager.Instance;
-        if (sm != null)
-        {
-            Setup01(masterSlider, sm.masterVolume, sm.SetMasterVolume);
-            Setup01(bgmSlider, sm.bgmVolume, sm.SetBgmVolume);
-            Setup01(sfxSlider, sm.sfxVolume, sm.SetSfxVolume);
-        }
+        // SoundManager가 아직 없어도 연결되도록, 값을 바꾸는 순간에 찾는다
+        Setup01(masterSlider, v => SoundManager.Instance?.SetMasterVolume(v));
+        Setup01(bgmSlider, v => SoundManager.Instance?.SetBgmVolume(v));
+        Setup01(sfxSlider, v => SoundManager.Instance?.SetSfxVolume(v));
     }
 
     static void SetupVolumeSlider(Slider s, UnityEngine.Events.UnityAction<float> cb)
@@ -147,13 +179,12 @@ public class SettingsPanel : MonoBehaviour
         s.onValueChanged.AddListener(cb);
     }
 
-    static void Setup01(Slider s, float value, UnityEngine.Events.UnityAction<float> cb)
+    static void Setup01(Slider s, UnityEngine.Events.UnityAction<float> cb)
     {
         if (s == null) return;
         s.minValue = 0f;
         s.maxValue = 1f;
         s.wholeNumbers = false;
-        s.SetValueWithoutNotify(value);
         s.onValueChanged.AddListener(cb);
     }
 
@@ -162,10 +193,19 @@ public class SettingsPanel : MonoBehaviour
 
     void RefreshAll()
     {
+        var sm = SoundManager.Instance;
+        if (sm != null)
+        {
+            if (masterSlider != null) masterSlider.SetValueWithoutNotify(sm.masterVolume);
+            if (bgmSlider != null) bgmSlider.SetValueWithoutNotify(sm.bgmVolume);
+            if (sfxSlider != null) sfxSlider.SetValueWithoutNotify(sm.sfxVolume);
+        }
+
         var vm = VoiceManager.Instance;
 
         // 장치와 볼륨은 방에 안 들어가도 쓸 수 있다 (Vivox 초기화만 되면 됨)
         bool usable = vm != null && vm.VivoxReady;
+        lastUsable = usable;
         if (voiceGroup != null)
         {
             voiceGroup.alpha = usable ? 1f : 0.45f;
@@ -265,9 +305,23 @@ public class SettingsPanel : MonoBehaviour
 
     void Update()
     {
+        WatchManagers();
         if (waitingForKey) CaptureKey();
         UpdateLevelBar();
         CheckDevicesPeriodically();
+
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            SettingsUI.SetActive(false);
+        }
+        if(RelayManager.Instance.isInRoom)
+        {
+
+        }
+        else
+        {
+
+        }
     }
 
     /// <summary>
