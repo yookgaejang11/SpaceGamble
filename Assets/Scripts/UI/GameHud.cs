@@ -29,7 +29,7 @@ public class GameHud : MonoBehaviour
 
         if (!shown) return;
 
-        if (roomCodeText != null) roomCodeText.text = code;
+        if (roomCodeText != null) roomCodeText.text = "Room Code:" + code;
 
         if (Input.GetKeyDown(copyKey) && !TypingInInputField())
         {

@@ -194,7 +194,7 @@ public class CenterHologram : ClientUIBase
     // 소리는 전부 SoundManager가 관리한다. 여기엔 SoundManager 'Sounds' 목록의 id(이름)만 적는다
     [Tooltip("SoundManager의 Sounds 목록에 있는 id")]
     public string sndLever = "lever";
-    public string sndScrambleTick = "scramble_tick";
+    public string sndScrambleLoop = "scramble_Loop";
     public string sndReveal = "reveal";
     public string sndOverload = "overload";
     public string sndCharge = "charge";
@@ -617,6 +617,8 @@ public class CenterHologram : ClientUIBase
         // 자리 보드(Player1/Player2 칸) 슬롯머신 시작 — 홀로그램 스크램블과 동시에 돈다
         if (seatBoard != null) seatBoard.PlayRoll(pendingCard);
 
+        Play(sndScrambleLoop);
+
         // 숫자 스크램블
         float t = 0f, tick = 0f;
         while (t < 0.8f || (seatBoard != null && seatBoard.IsRolling))   // 보드가 멈출 때까지 같이 돈다
@@ -627,10 +629,11 @@ public class CenterHologram : ClientUIBase
             {
                 tick = 0f;
                 SetMessage($"OPPONENT PRIORITY  {Random.Range(1, 11)}", normalColor);
-                Play(sndScrambleTick);
             }
             yield return null;
         }
+
+        SoundManager.StopLoop(sndScrambleLoop);
 
         SetMessage($"OPPONENT PRIORITY  {pendingCard}", normalColor);
         Play(sndReveal);
@@ -690,8 +693,10 @@ public class CenterHologram : ClientUIBase
             SetMessage("PRIORITY CHECK", normalColor);
             if (seatBoard != null)
             {
+                SoundManager.PlayLoop(sndScrambleLoop);
                 seatBoard.PlayReveal(myCard, oppCard);
                 while (seatBoard.IsRolling) yield return null;      // 보드가 멈출 때까지
+                SoundManager.StopLoop(sndScrambleLoop);
             }
             else yield return new WaitForSeconds(0.8f);
 
