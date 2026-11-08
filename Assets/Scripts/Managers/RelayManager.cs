@@ -8,20 +8,21 @@ using Unity.Services.Relay;
 using UnityEngine;
 using Unity.Services.Relay.Models;
 using Unity.Services.Vivox;
+
 public class RelayManager : MonoBehaviour
 {
     public static RelayManager Instance { get; private set; }
 
-    const int MaxConnections = 1;           // Host 제외 인원
+    const int MaxConnections = 1;
     const string ConnectionType = "dtls";
 
     public bool isInRoom;
     public string joinCode { get; private set; }
 
-    public event Action<string> OnRoomCodeSpawned;      // 방 코드 생성
-    public event Action OnRoomConnectSuccessed;         // 접속 성공
-    public event Action<string> OnRoomConnectFailed;    // 접속 실패 (사유)
-    public event Action<string> OnRoomQuited;           // 방 나감 (사유)
+    public event Action<string> OnRoomCodeSpawned;
+    public event Action OnRoomConnectSuccessed;
+    public event Action<string> OnRoomConnectFailed;
+    public event Action<string> OnRoomQuited;
 
     void Awake()
     {
@@ -36,16 +37,18 @@ public class RelayManager : MonoBehaviour
         if (!AuthenticationService.Instance.IsSignedIn)
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
 
-        await VivoxService.Instance.InitializeAsync();   // ← 추가
+        await VivoxService.Instance.InitializeAsync();
     }
 
     public async Task<string> CreateRoom()
     {
         try
         {
+            CleanupNetworkManager();
+
             if (isInRoom) return null;
-            if (NetworkManager.Singleton.IsListening) return null;
             isInRoom = true;
+
             await InitAsync();
 
             var allocation = await RelayService.Instance.CreateAllocationAsync(MaxConnections);
@@ -66,8 +69,8 @@ public class RelayManager : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"[Relay] CreateRoom 실패: {e}");
-            LeaveRoom(null);                                    // 조용히 정리만
+            Debug.LogError($"[Relay] CreateRoom 실패: {e.Message}");
+            ForceResetState();
             OnRoomConnectFailed?.Invoke("방 만들기에 실패했습니다.");
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
@@ -79,11 +82,15 @@ public class RelayManager : MonoBehaviour
     {
         try
         {
+            // 방 참가 시도 직전 잔여 소켓 정리
+            CleanupNetworkManager();
+
             if (isInRoom) return false;
-            if (NetworkManager.Singleton.IsListening) return false;
             isInRoom = true;
+
             await InitAsync();
 
+            // 호스트가 나가서 삭제된 코드라면 여기서 예외 발생
             var allocation = await RelayService.Instance.JoinAllocationAsync(code);
 
             NetworkManager.Singleton.GetComponent<UnityTransport>()
@@ -95,53 +102,75 @@ public class RelayManager : MonoBehaviour
             if (!started)
                 throw new Exception("StartClient failed");
 
+            //타임아웃처리
+            float timeoutSeconds = 5f;
+            float elapsed = 0f;
+
+            while (!NetworkManager.Singleton.IsConnectedClient && elapsed < timeoutSeconds)
+            {
+                // 중간에 Client가 튕겼다면 바로 탈출
+                if (!NetworkManager.Singleton.IsClient) break;
+
+                await Task.Delay(100);
+                elapsed += 0.1f;
+            }
+
+            // timeout 되면 연결 강제 취소
+            if (!NetworkManager.Singleton.IsConnectedClient)
+            {
+                throw new Exception("Connection Timeout");
+            }
+
             joinCode = code;
             OnRoomConnectSuccessed?.Invoke();
             return true;
         }
         catch (Exception e)
         {
-            Debug.LogError($"[Relay] JoinRoom 실패: {e}");
-            LeaveRoom(null);
-            OnRoomConnectFailed?.Invoke("방에 들어가지 못했습니다. 코드를 확인해주세요.");
+            Debug.LogError($"[Relay] JoinRoom 실패: {e.Message}");
+            ForceResetState();
+            OnRoomConnectFailed?.Invoke("방에 들어가지 못했습니다. 코드를 확인하거나 호스트 상태를 확인해주세요.");
             return false;
         }
     }
 
-    /// <summary>
-    /// 방을 떠난다. 나가기 버튼 / 호스트 끊김 / 접속 실패가 모두 여기로 모인다.
-    /// reason이 null이면 이벤트를 쏘지 않는다 (실패 쪽에서 따로 알리는 경우).
-    /// </summary>
+    // 소켓 및 콜백 동기 즉시 초기화
+    private void CleanupNetworkManager()
+    {
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnDisconnected;
+            if (NetworkManager.Singleton.IsListening || NetworkManager.Singleton.IsConnectedClient)
+            {
+                NetworkManager.Singleton.Shutdown();
+            }
+        }
+    }
+
+    // 실패 시 상태 리셋
+    private void ForceResetState()
+    {
+        isInRoom = false;
+        joinCode = null;
+        CleanupNetworkManager();
+    }
+
     public void LeaveRoom(string reason)
     {
         if (!isInRoom) return;
-        isInRoom = false;                       // Shutdown보다 먼저 내려야 재진입이 막힌다
 
+        isInRoom = false;
         joinCode = null;
+
+        CleanupNetworkManager();
 
         if (reason != null)
             OnRoomQuited?.Invoke(reason);
-
-        if (NetworkManager.Singleton == null) return;
-
-        NetworkManager.Singleton.OnClientDisconnectCallback -= OnDisconnected;
-
-        // 콜백 처리 중에 Shutdown하면 NGO 내부가 꼬일 수 있어 한 프레임 미룬다
-        CancelInvoke(nameof(DoShutdown));
-        Invoke(nameof(DoShutdown), 0f);
     }
 
     void OnDisconnected(ulong clientId)
     {
-        // 서버(Host) 쪽 처리는 GameManager가 한다. 여기는 클라이언트 전용.
-        if (NetworkManager.Singleton.IsServer) return;
-        if (clientId != NetworkManager.Singleton.LocalClientId) return;
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer) return;
         LeaveRoom("호스트와의 연결이 끊어졌습니다.");
-    }
-
-    void DoShutdown()
-    {
-        if (NetworkManager.Singleton != null)
-            NetworkManager.Singleton.Shutdown();
     }
 }
