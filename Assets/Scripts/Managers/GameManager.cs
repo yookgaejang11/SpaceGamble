@@ -149,6 +149,8 @@ public class GameSession
 public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance { get; private set; }
+
+    public GameObject crossHair;
     [Header("규칙")]
     public GamePer SOGameRule;
     [HideInInspector] public GamePer gameRule;
@@ -274,6 +276,9 @@ public class GameManager : NetworkBehaviour
 
         bool readyPhase = (phase == GamePhase.waiting || phase == GamePhase.GameOver);
 
+        if (phase == GamePhase.waiting || phase == GamePhase.RoundStart)
+            crossHair.SetActive(true);
+        
         for (int i = 0; i < 2; i++)
         {
             if (clients[i] == null) continue;

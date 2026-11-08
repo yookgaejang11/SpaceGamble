@@ -1,8 +1,10 @@
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
 public class HeadLookSync : NetworkBehaviour
 {
+    public static HeadLookSync Instance { get; private set; }
     public static bool CursorFree { get; private set; }
 
     static bool lockEnabled = true;     // lockCursor 설정의 정적 복사본
@@ -53,6 +55,10 @@ public class HeadLookSync : NetworkBehaviour
     Vector2 shownLook;      // 실제로 화면에 적용 중인 값 (보간 결과)
     float sendTimer;
 
+    //카메라 쉐이크 관련 변수
+    Vector3 shakeOffset;
+    Coroutine shakeRoutine;
+
     GamePer rule;
 
     public override void OnNetworkSpawn()
@@ -66,6 +72,8 @@ public class HeadLookSync : NetworkBehaviour
             if (ownerAudioListener != null) ownerAudioListener.enabled = false;
             return;
         }
+
+        Instance = this; // 내 클라이언트의 Local Owner 참조 저장
 
         lockEnabled = lockCursor;
         CursorFree = false;
@@ -81,12 +89,13 @@ public class HeadLookSync : NetworkBehaviour
 
             ownerAudioListener.enabled = true;
         }
-
     }
 
     public override void OnNetworkDespawn()
     {
         if (!IsOwner) return;
+
+        if (Instance == this) Instance = null;
 
         // 방을 나가면 커서를 돌려준다 (로비 UI를 눌러야 하므로)
         CursorFree = false;
@@ -144,14 +153,16 @@ public class HeadLookSync : NetworkBehaviour
 
         shownLook = Vector2.Lerp(shownLook, target, 1f - Mathf.Exp(-smooth * Time.deltaTime));
 
-        // 카메라는 Owner만
+        // 카메라는 Owner만 (회전에 쉐이크 오프셋 적용)
         if (IsOwner && camRig != null)
-            camRig.localRotation = Quaternion.Euler(-shownLook.y, shownLook.x, 0f);
+        {
+            Quaternion baseRot = Quaternion.Euler(-shownLook.y, shownLook.x, 0f);
+            camRig.localRotation = baseRot * Quaternion.Euler(shakeOffset);
+        }
 
         if (head == null) return;
         head.localRotation = headBaseLocal;
         // 애니메이션이 만든 머리 포즈 위에, 캐릭터 기준 축으로 회전을 더한다.
-        // (본의 로컬 축 방향은 모델마다 달라서 localRotation 대입은 쓰면 안 된다)
         head.rotation =
             Quaternion.AngleAxis(shownLook.x, transform.up) *
             Quaternion.AngleAxis(-shownLook.y, transform.right) *
@@ -165,6 +176,41 @@ public class HeadLookSync : NetworkBehaviour
     {
         localLook = Vector2.zero;
         shownLook = Vector2.zero;
+        shakeOffset = Vector3.zero;
         if (IsOwner) netLook.Value = Vector2.zero;
+    }
+
+    // ────────────────────────── 카메라 쉐이크 ──────────────────────────
+
+    /// <summary>
+    /// 사출 순간이나 충격 발생 시 메인 카메라(camRig)를 흔든다.
+    /// </summary>
+    /// <param name="duration">지속 시간(초)</param>
+    /// <param name="intensity">진동 세기(각도 기준, 예: 1.5f ~ 3.0f)</param>
+    public void ShakeCamera(float duration = 0.3f, float intensity = 2.0f)
+    {
+        if (!IsOwner || camRig == null) return;
+        if (shakeRoutine != null) StopCoroutine(shakeRoutine);
+        shakeRoutine = StartCoroutine(ShakeRoutine(duration, intensity));
+    }
+
+    IEnumerator ShakeRoutine(float duration, float intensity)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float damping = 1f - (elapsed / duration); // 시간이 지날수록 진동 감소
+
+            float shakeX = Random.Range(-1f, 1f) * intensity * damping;
+            float shakeY = Random.Range(-1f, 1f) * intensity * damping;
+            float shakeZ = Random.Range(-1f, 1f) * (intensity * 0.5f) * damping;
+
+            shakeOffset = new Vector3(shakeX, shakeY, shakeZ);
+            yield return null;
+        }
+
+        shakeOffset = Vector3.zero;
+        shakeRoutine = null;
     }
 }

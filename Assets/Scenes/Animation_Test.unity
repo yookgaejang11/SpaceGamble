@@ -7176,6 +7176,8 @@ MonoBehaviour:
   cam: {fileID: 0}
   hoverMark: {fileID: 0}
   hoverScale: 1.08
+  infoTitle: GO
+  infoDesc: "\uADF8\uB300\uB85C \uC9C4\uD589\uD55C\uB2E4."
   debugLog: 1
 --- !u!65 &516547058
 BoxCollider:
@@ -7729,6 +7731,8 @@ MonoBehaviour:
   cam: {fileID: 0}
   hoverMark: {fileID: 0}
   hoverScale: 1.08
+  infoTitle: GO
+  infoDesc: "\uADF8\uB300\uB85C \uC9C4\uD589\uD55C\uB2E4."
   debugLog: 1
 --- !u!65 &570616794
 BoxCollider:
@@ -11721,7 +11725,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &818599001
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11735,6 +11739,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+  crossHair: {fileID: 0}
   SOGameRule: {fileID: 11400000, guid: 717eec91d767ed64b8d4ac0f229dfb63, type: 2}
   gameRule: {fileID: 0}
   seats:
@@ -12071,6 +12076,8 @@ MonoBehaviour:
   cam: {fileID: 0}
   hoverMark: {fileID: 0}
   hoverScale: 1.08
+  infoTitle: GO
+  infoDesc: "\uADF8\uB300\uB85C \uC9C4\uD589\uD55C\uB2E4."
   debugLog: 1
 --- !u!65 &825040860
 BoxCollider:
@@ -12887,7 +12894,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &885553644
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18220,6 +18227,7 @@ MonoBehaviour:
   hintMessage: '[C] COPY'
   copiedMessage: COPIED!
   copiedShowTime: 1.5
+  HideCode: {fileID: 0}
 --- !u!114 &1312250609
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19209,12 +19217,13 @@ MonoBehaviour:
   endWinColor: {r: 0.55, g: 0.85, b: 1, a: 1}
   endLoseColor: {r: 1, g: 0.35, b: 0.3, a: 1}
   sndLever: lever
-  sndScrambleTick: scramble_tick
+  sndScrambleLoop: scramble_Loop
   sndReveal: reveal
   sndOverload: overload
   sndCharge: charge
   sndEject: eject
   sndSafe: safe
+  button_Push: Button_Push
   debugLog: 0
 --- !u!1 &1396238958
 GameObject:
@@ -19343,7 +19352,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1397987878
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19809,7 +19818,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1420749425
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22380,6 +22389,8 @@ MonoBehaviour:
   cam: {fileID: 0}
   hoverMark: {fileID: 0}
   hoverScale: 1.08
+  infoTitle: GO
+  infoDesc: "\uADF8\uB300\uB85C \uC9C4\uD589\uD55C\uB2E4."
   debugLog: 1
 --- !u!65 &1593551746
 BoxCollider:
@@ -22597,6 +22608,8 @@ MonoBehaviour:
   cam: {fileID: 0}
   hoverMark: {fileID: 0}
   hoverScale: 1.08
+  infoTitle: GO
+  infoDesc: "\uADF8\uB300\uB85C \uC9C4\uD589\uD55C\uB2E4."
   debugLog: 1
 --- !u!65 &1607588359
 BoxCollider:
@@ -27561,8 +27574,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87270b4bc0dc0c949b61f32e9b7bb21f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  micMode: 0
+  pushToTalkKey: 118
+  inputVolume: 0
+  opponentVolume: 0
   channelPrefix: SG_
-  voiceTestEcho: 1
+  debugLog: 0
 --- !u!4 &1938906565
 Transform:
   m_ObjectHideFlags: 0
@@ -29334,6 +29351,8 @@ MonoBehaviour:
   cam: {fileID: 0}
   hoverMark: {fileID: 0}
   hoverScale: 1.08
+  infoTitle: GO
+  infoDesc: "\uADF8\uB300\uB85C \uC9C4\uD589\uD55C\uB2E4."
   debugLog: 1
 --- !u!65 &2044853006
 BoxCollider:
@@ -29447,7 +29466,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2069128298
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29556,9 +29575,6 @@ MonoBehaviour:
   masterVolume: 1
   bgmVolume: 1
   sfxVolume: 1
-  masterSlider: {fileID: 1261377970}
-  bgmSlider: {fileID: 120605658}
-  sfxSlider: {fileID: 1779649379}
   debugLog: 0
   poolSize: 8
   maxDistance: 20

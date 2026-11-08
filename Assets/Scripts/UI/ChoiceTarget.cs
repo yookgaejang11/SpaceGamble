@@ -20,10 +20,17 @@ public class ChoiceTarget : ClientUIBase
     public GameObject hoverMark;
     [Tooltip("조준 중 크기 배율. 1이면 변화 없음")]
     public float hoverScale = 1.08f;
+    [Header("설명")]
+    public string infoTitle = "GO";
+
+    [TextArea(2, 4)]
+    public string infoDesc = "그대로 진행한다.";
+
 
     [Header("디버그")]
     [Tooltip("체크하면 좌클릭할 때마다 '왜 눌렸는지/안 눌렸는지'를 콘솔에 찍는다")]
     public bool debugLog = true;
+
 
     Vector3 baseScale;
     bool hovering;
@@ -156,5 +163,19 @@ public class ChoiceTarget : ClientUIBase
 
         if (hoverMark != null) hoverMark.SetActive(on);
         transform.localScale = on ? baseScale * hoverScale : baseScale;
+
+        if(ChoiceInfoPanel.Instance != null)
+        {
+            if (on) ChoiceInfoPanel.Instance.Show(this, infoTitle, infoDesc);
+            else ChoiceInfoPanel.Instance.Hide(this);
+        }
+    }
+
+    string InfoDesc()
+    {
+        if (choice != Choice.Fold) return infoDesc;
+
+        int left = client != null ? client.foldLeft : 0;
+        return $"{infoDesc}\n\n<color=#8FE3C8>남은 횟수  {left}</color>";
     }
 }
