@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class GameHud : MonoBehaviour
 {
@@ -15,7 +16,7 @@ public class GameHud : MonoBehaviour
     public string hintMessage = "[C] COPY";
     public string copiedMessage = "COPIED!";
     public float copiedShowTime = 1.5f;
-
+    [SerializeField] GameObject HideCode;
     float copiedUntil;
 
 
@@ -26,6 +27,7 @@ public class GameHud : MonoBehaviour
 
         if (roomCodeGroup != null && roomCodeGroup.activeSelf != shown)
             roomCodeGroup.SetActive(shown);
+            
 
         if (!shown) return;
 
@@ -39,6 +41,20 @@ public class GameHud : MonoBehaviour
 
         if (hintText != null)
             hintText.text = (Time.unscaledTime < copiedUntil) ? copiedMessage : hintMessage;
+
+        if (HideCode != null)
+        {
+            if (Input.GetKey(KeyCode.Tab))
+            {
+                HideCode.gameObject.SetActive(false);
+            }
+
+            if (Input.GetKeyUp(KeyCode.Tab))
+            {
+                HideCode.gameObject.SetActive(true);
+            }
+        }
+
     }
 
 

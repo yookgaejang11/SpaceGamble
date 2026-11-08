@@ -12,17 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbb712e67f660294d956db1994171d61, type: 3}
   m_Name: test_GamePer
   m_EditorClassIdentifier: 
-  upPer: 95
-  downPer: 3
-  extraPer: 2
+  upPer: 1
+  downPer: 1
+  extraPer: 98
   upMaxVal: 50
   upMinVal: 30
   downMaxVal: 6
   downMinVal: 1
-  extraVal: -20
-  talkingTime: 5
+  extraVal: -50
+  talkingTime: 1
   cutSceneTime: 10
-  basicPer: 10
+  basicPer: 100
   overloadMul: 1.5
   bothOverloadMul: 2
   lookSendRate: 15

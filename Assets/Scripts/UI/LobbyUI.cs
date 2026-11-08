@@ -54,6 +54,13 @@ public class LobbyUI : MonoBehaviour
     void HandleRoomQuited(string reason)
     {
         if (string.IsNullOrEmpty(reason)) return;   // 직접 나간 경우엔 팝업 없음
+
+        //내가 호스트였거나, Unity Netcode에서 호스트 권한(IsHost) 상태로 나가진 것이라면 알림 팝업 무시
+        if (Unity.Netcode.NetworkManager.Singleton != null && Unity.Netcode.NetworkManager.Singleton.IsHost)
+        {
+            return;
+        }
+
         ShowNotice("연결 종료", reason);
     }
 
