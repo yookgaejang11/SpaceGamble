@@ -91,7 +91,7 @@ public class GameClient : NetworkBehaviour
     void Update()
     {
         if (!IsOwner) return;
-
+        if (GameManager.Instance.isLoading) return;
         if (curPhase == GamePhase.talkTime)
         {
             curTime = Mathf.Max(curTime - Time.deltaTime, 0f);

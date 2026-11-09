@@ -47,7 +47,7 @@ public class LoadingScreen : MonoBehaviour
     int dots;
 
 
-    void Awake()
+    void Start()
     {
         SetAlpha(0f);
         SetBlock(false);
@@ -112,7 +112,6 @@ public class LoadingScreen : MonoBehaviour
         if (statusText != null) statusText.text = connectingText;
         if (tipText != null && tips != null && tips.Length > 0)
             tipText.text = tips[Random.Range(0, tips.Length)];
-
         SetBlock(true);
         SetHidden(true);
     }
@@ -148,9 +147,12 @@ public class LoadingScreen : MonoBehaviour
     /// <summary>로딩 중엔 뒤의 UI(로비 버튼 등)를 못 누르게 막는다</summary>
     void SetBlock(bool on)
     {
+        Debug.LogWarning($"SetBlock {on}");
+        GameManager.Instance.isLoading = on;
         if (group == null) return;
         group.blocksRaycasts = on;
         group.interactable = on;
+
     }
 
     bool[] wasActive;   // 숨기기 전에 켜져 있던 것만 다시 켜기 위해 기억

@@ -7,7 +7,7 @@ public class ColorSwitch : ClientUIBase
     [Header("기준")]
     [Tooltip("이 확률 이상이면 위험 색")]
     public int threshold = 50;
-
+    float target;
     public float fadeSpeed;
 
     [Tooltip("체크하면 0~100%에 걸쳐 계속 변한다 (threshold 무시)")]
@@ -50,18 +50,18 @@ public class ColorSwitch : ClientUIBase
     protected override void Subscribe()
     {
         client.OnPerChanged += OnPerChanged;
-        client.OnChangedPhase += OnChangedPhase; // ★ 페이즈 변경 이벤트 추가 구독
+        client.OnChangedPhase += OnChangedPhase; //페이즈 변경 이벤트 추가 구독
     }
 
     protected override void Unsubscribe()
     {
         client.OnPerChanged -= OnPerChanged;
-        client.OnChangedPhase -= OnChangedPhase; // ★ 이벤트 해제
+        client.OnChangedPhase -= OnChangedPhase; //이벤트 해제
     }
 
     void OnPerChanged(int before, int cur) => per = cur;
 
-    // ★ 페이즈 변경 시 필요한 처리 (필요시 사용)
+    //페이즈 변경 시 필요한 처리 (필요시 사용)
     void OnChangedPhase(GamePhase phase)
     {
         // RoundStart 진입 시 즉시 갱신하고 싶다면 추가 로직 배치 가능
@@ -72,9 +72,7 @@ public class ColorSwitch : ClientUIBase
         // client가 없거나 연결이 끊긴 경우 예외 방지
         if (client == null) return;
 
-        // ★ GamePhase가 RoundStart일 때만 per 기준 색상(1f 또는 연속 비율)을 타겟으로 잡고,
-        // 그 외 페이즈일 때는 기본 색상(0f)을 타겟으로 잡습니다.
-        float target = 0f;
+        //GamePhase가 RoundStart일 때만 per 기준 색상을 변경한다.
 
         if (client.curPhase == GamePhase.RoundStart)
         {
