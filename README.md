@@ -1,254 +1,132 @@
-# SPACE GAMBLE
-
-> 고장 난 우주선, 비상 사출 장치 하나.
-> **숫자가 낮은 사람이 자기 머리 위 사출 버튼을 직접 눌러야 한다.**
-
-Unity 6으로 만든 **1대1 온라인 심리전 게임**입니다.
+SPACE GAMBLE
+Unity 6으로 만든 1대1 온라인 심리전 게임입니다.
 인디언 포커 구조 — 상대의 숫자는 보이지만 내 숫자는 보이지 않습니다.
-
--->
-
-| | |
-|---|---|
-| 장르 | 1대1 심리전 / 갬블 |
-| 플랫폼 | PC (Windows) |
-| 인원 | 2인 온라인 |
-| 1판 길이 | 약 3분 |
-| 엔진 | Unity 6000.0.58f1 (URP) |
-
+	
+장르	1대1 심리전 / 갬블
+플랫폼	PC (Windows)
+인원	2인 온라인
+1판 길이	약 3분
+엔진	Unity 6000.0.58f1 (URP)
 ---
-
-## 게임 소개
-
-매 라운드 두 사람에게 **1~10 중 하나**가 주어집니다.
-**상대의 숫자는 보이고 내 숫자는 `??`로 가려집니다.**
-
-숫자가 낮은 쪽이 사출 버튼을 누릅니다. 버튼은 고장 나 있어서 작동할 확률이 매번 다르고, **그 확률은 라운드를 넘어 계속 쌓입니다.**
-
+게임 소개
+매 라운드 두 사람에게 1~10 중 하나가 주어집니다.
+상대의 숫자는 보이고 내 숫자는 `??`로 가려집니다.
+숫자가 낮은 쪽이 사출 버튼을 누릅니다. 버튼은 고장 나 있어서 작동할 확률이 매번 다르고, 그 확률은 라운드를 넘어 계속 쌓입니다.
 사고가 한 번이라도 나면 그 사람이 사출되고 게임이 끝납니다.
-
-내 숫자를 알 방법은 하나뿐입니다 — **상대를 관찰하는 것.**
+내 숫자를 알 방법은 하나뿐입니다 — 상대를 관찰하는 것.
 1인칭 고정 시점이라 상대의 시선과 목소리가 거의 유일한 단서입니다.
-
 ---
-
-## 규칙
-
-### 라운드 흐름
-
-| 순서 | 단계 | 내용 |
-|---|---|---|
-| ① | 우선순위 배분 | 각자 1~10 중 하나 |
-| ② | 교섭 | 대화하며 선택 결정 |
-| ③ | 공개 | 선택과 숫자가 동시에 공개 |
-| ④ | 사출 시도 | 낮은 쪽이 버튼을 1회 |
-| ⑤ | 판정 | 생존 시 확률 변동 → ①로 / 사고 시 종료 |
-
-### 선택지
-
-교섭 시간 동안 셋 중 하나를 고릅니다. **시간이 끝나는 순간의 선택이 확정**되며, 그 전까지는 몇 번이든 바꿀 수 있습니다.
-
-| 선택 | 효과 | 제한 |
-|---|---|---|
-| **GO** | 그대로 진행 | 무제한 |
-| **FOLD** | 라운드 무효화. 아무도 누르지 않음 | **1판에 2회** |
-| **OVERLOAD** | 이 라운드 사출 확률에 배율 (양쪽 모두 적용) | 무제한 |
-
-**FOLD의 잔여 횟수는 본인만 볼 수 있습니다.** 그리고 FOLD로 끝난 라운드는 양쪽 숫자를 공개하지 않습니다 — 블러핑이었는지 끝까지 알 수 없게 하기 위해서입니다.
-
-**OVERLOAD**는 블랙잭의 더블 다운에서 가져왔습니다. 내가 높다고 확신할 때 상대를 FOLD로 몰아내는 압박 수단이지만, **배율은 누가 걸었든 양쪽에 적용**되므로 판단이 틀리면 내가 올린 확률로 내가 누릅니다.
-
-### 사출 확률
-
+규칙
+라운드 흐름
+순서	단계	내용
+①	우선순위 배분	각자 1~10 중 하나
+②	교섭	대화하며 선택 결정
+③	공개	선택과 숫자가 동시에 공개
+④	사출 시도	낮은 쪽이 버튼을 1회
+⑤	판정	생존 시 확률 변동 → ①로 / 사고 시 종료
+선택지
+교섭 시간 동안 셋 중 하나를 고릅니다. 시간이 끝나는 순간의 선택이 확정되며, 그 전까지는 몇 번이든 바꿀 수 있습니다.
+선택	효과	제한
+GO	그대로 진행	무제한
+FOLD	라운드 무효화. 아무도 누르지 않음	1판에 2회
+OVERLOAD	이 라운드 사출 확률에 배율 (양쪽 모두 적용)	무제한
+FOLD의 잔여 횟수는 본인만 볼 수 있습니다. 그리고 FOLD로 끝난 라운드는 양쪽 숫자를 공개하지 않습니다 — 블러핑이었는지 끝까지 알 수 없게 하기 위해서입니다.
+OVERLOAD는 블랙잭의 더블 다운에서 가져왔습니다. 내가 높다고 확신할 때 상대를 FOLD로 몰아내는 압박 수단이지만, 배율은 누가 걸었든 양쪽에 적용되므로 판단이 틀리면 내가 올린 확률로 내가 누릅니다.
+사출 확률
 확률은 양쪽 모두에게 공개되며, 버튼을 누르고 살아남으면 변동합니다.
-
-세부 수치(시작 확률, 증감 분포, 교섭 시간, OVERLOAD 배율)는 `GamePer` ScriptableObject에 분리되어 있어 **빌드 없이 조정**할 수 있습니다.
-
 ---
-
-## 조작
-
-| 입력 | 동작 |
-|---|---|
-| 마우스 | 시선 회전 |
-| 좌클릭 | 조준한 대상 누르기 |
-| **F4** | 준비 / 준비 취소 |
-| **ESC** | 설정 메뉴 |
-| **C** | 참가 코드 복사 (대기실) |
-
-마우스 커서는 화면 중앙에 고정됩니다. 버튼은 가리키는 게 아니라 **고개를 돌려 조준해서** 누릅니다.
-
-선택지를 고르려면 콘솔을 내려다봐야 하고, 사출 버튼을 누르려면 그 버튼을 쳐다봐야 합니다. 시선은 동기화되므로 **그 움직임이 상대에게 그대로 보입니다.** 조작 방식 자체가 심리전의 일부가 되도록 의도한 설계입니다.
-
+조작
+입력	동작
+마우스	시선 회전
+좌클릭	조준한 대상 누르기
+F4	준비 / 준비 취소
+ESC	설정 메뉴
+C	참가 코드 복사 (대기실)
+마우스 커서는 화면 중앙에 고정됩니다. 버튼은 가리키는 게 아니라 고개를 돌려 조준해서 누릅니다.
+선택지를 고르려면 콘솔을 내려다봐야 하고, 사출 버튼을 누르려면 그 버튼을 쳐다봐야 합니다. 시선은 동기화되므로 그 움직임이 상대에게 그대로 보입니다. 조작 방식 자체가 심리전의 일부가 되도록 의도한 설계입니다.
 ---
-
-## 기술 스택
-
-| 분류 | 사용 |
-|---|---|
-| 엔진 | Unity 6000.0.58f1 / URP |
-| 네트워크 | Netcode for GameObjects |
-| 매칭 | Unity Relay (코드 기반 입장) |
-| 음성 | Vivox (오픈 마이크 / 눌러서 말하기) |
-| 연출 | Timeline, DOTween, 커스텀 셰이더 (HLSL) |
-| 기타 | TextMeshPro |
-
+실행 방법
+itch.io 다운로드 및 실행 방법 (플레이어용)
+> **필수 사항:** 2명의 플레이어 모두 **인터넷 연결**이 필요합니다.
+다운로드: itch.io 페이지에서 게임 압축 파일(`.zip`)을 다운로드합니다.
+압축 해제: 다운로드한 `.zip` 파일의 압축을 원하시는 폴더에 해제합니다.
+게임 실행: 압축이 해제된 폴더에서 `Space_Gamble.exe` 파일을 실행합니다.
+방 생성 및 입장:
+플레이어 A (호스트): 메인 화면에서 **[방 만들기]**를 클릭하여 방을 생성한 후, 화면의 참가 코드를 복사(`C` 키)하여 플레이어 B에게 전달합니다.
+플레이어 B (참가자): 메인 화면에서 **[참가하기]**를 누르고 전달받은 코드를 입력하여 입장합니다.
+준비 및 시작: 두 플레이어 모두 로비에서 `F4` 키를 눌러 준비(Ready)를 완료하면 게임이 시작됩니다.
 ---
-
-## 코드 구조
-
-```
-GameManager      서버 권위 본체 — 페이즈 전환, RPC 송신, 요청 접수
- └ GameSession   순수 C# 클래스 — 카드·확률·승자 판정만 (UnityEngine 의존 없음)
-GamePer          ScriptableObject — 확률·시간·배율 수치
-GameClient       플레이어 1명 — 수신 RPC를 C# 이벤트로 방송
-RelayManager     방 생성 / 참가 / 나가기
-VoiceManager     음성 채널, 마이크 모드, 장치 선택
-CenterHologram   연출 지휘자 — 모든 연출 코루틴과 종료 신호
-ClientUIBase     GameClient.Local 구독 공통 베이스 (추상)
-```
-
-UI는 `GameManager`나 `GameSession`을 **절대 참조하지 않습니다.** `GameClient`가 노출하는 이벤트만 구독합니다.
-
-```
-GameManager ──타겟 RPC──▶ GameClient ──event──▶ UI 스크립트들
-                               ▲
-                               └── RequestGo / RequestFold / RequestPress …
-```
-
+프로젝트 열기 (개발자용)
+권장 엔진 버전: `Unity 6000.0.58f1` 이상
 ---
-
-## 구현 포인트
-
-### 1. 숨길 정보는 전송하지 않는다
-
-내 숫자를 UI로 가리는 방식은 메모리를 보면 뚫립니다. 그래서 **공개 시점 전까지 클라이언트로 보내지 않습니다.**
-
-같은 사건을 양쪽에 **각자의 관점으로** 따로 보냅니다.
-
-```csharp
-// 상대 카드만 — 자기 카드는 라운드 중 절대 안 간다
-clients[0].ReceiveOpponentCardRpc(session.cardNums[1], clients[0].ToMe);
-clients[1].ReceiveOpponentCardRpc(session.cardNums[0], clients[1].ToMe);
-
-// 선택 공개 — (내 것, 상대 것) 순서가 사람마다 다르다
-clients[0].ReceiveChoiceRevealedRpc(session.choices[0], session.choices[1], clients[0].ToMe);
-clients[1].ReceiveChoiceRevealedRpc(session.choices[1], session.choices[0], clients[1].ToMe);
-```
-
-덕분에 UI는 "내 것 / 상대 것"만 알면 되고, 자기가 몇 번 자리인지 신경 쓸 필요가 없습니다.
-
-### 2. 연출 시간을 서버가 모르는 문제
-
-연출 길이는 클라이언트 사정이고 서버는 모릅니다. 고정 시간으로 기다리면 한쪽 PC가 느릴 때 화면이 어긋납니다.
-
-그래서 **양쪽의 "연출 끝났다" 신호를 기다립니다.**
-
-```
-서버: ChangePhase(Open) → 양쪽에 통보 → 대기
-클라A: 연출 재생 … 끝 → EndPresentation()
-클라B: 연출 재생 … 끝 → EndPresentation()
-서버: 둘 다 왔다 → 다음 페이즈
-```
-
-연출 스크립트가 꺼져 있거나 예외로 죽어도 게임이 멈추지 않도록 **타임아웃**을 함께 둡니다.
-
-### 3. NetworkTransform 없이 시선 동기화
-
-1인칭이라 아바타의 **머리 방향**이 유일한 비언어 정보입니다. 그런데 Animator가 LateUpdate에서 본 포즈를 덮어쓰기 때문에 본 Transform을 직접 동기화하면 값이 지워집니다.
-
-**각도만 주고받고, 각 클라이언트가 LateUpdate에서 직접 덮어쓰는** 방식으로 해결했습니다.
-
-```csharp
-head.localRotation = headBaseLocal;      // 애니메이션 포즈를 기준으로 되돌리고
-head.rotation = Quaternion.AngleAxis(shownLook.x, transform.up) *
-                Quaternion.AngleAxis(-shownLook.y, transform.right) * head.rotation;
-```
-
-본의 로컬 축 방향은 모델마다 달라서 `localRotation` 대입은 쓸 수 없고, 캐릭터 기준 축으로 월드 회전을 더합니다. 전송은 **초당 15회**로 제한하고 거의 안 움직였으면 생략합니다.
-
-### 4. 커서가 잠긴 1인칭에서의 UI 입력
-
-커서 잠금 상태에서는 Unity UI의 `Button.onClick`이 불리지 않습니다. 버튼마다 Collider를 붙이고 **화면 정중앙에서 레이를 쏴서** 직접 판정합니다.
-
-```csharp
-Vector3 screenPoint = HeadLookSync.CursorFree
-    ? Input.mousePosition                                        // ESC 메뉴 → 실제 마우스
-    : new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0); // 1인칭 → 조준점
-```
-
-### 5. 밸런스 수치 분리와 시뮬레이션
-
-확률 분포·증감 폭·시간·배율을 전부 `GamePer`로 빼서, 수치 조정에 재빌드가 필요 없게 했습니다.
-
-초기 수치는 증가와 감소가 대칭이라 **확률이 사실상 제자리였습니다.** 시뮬레이션으로 라운드당 기대 변동이 +0.3%p 수준임을 확인하고 분포를 상향 조정해, 의도했던 긴장 곡선을 수치로 확보했습니다.
-
-### 6. 커스텀 셰이더
-
-| 셰이더 | 용도 |
-|---|---|
-| `SpaceGamble/Hologram` | 중앙 홀로그램 — 몸통과 가장자리 색을 분리해 글자 가독성 확보 |
-| `SpaceGamble/Screen` | 콘솔 화면 — RGB 서브픽셀 줄무늬, 주사선, 비네트 |
-| `SpaceGamble/ScreenOverlay` | 글자 위에 덮는 유리면 |
-
+개발 정보
+	
+개발	1인 (기획 · 프로그래밍 · 연출 · UI)
+기간	2026.09 ~
+담당	전체
 ---
-
-## 실행 방법
-
-### 빌드로 플레이
-
-1. 두 대의 PC에서 각각 실행
-2. 한 명이 **방 만들기** → 참가 코드 발급 (`C`로 복사)
-3. 다른 한 명이 **참가하기** → 코드 입력
-4. 둘 다 **F4**로 준비
-
-### 프로젝트 열기
-
-```
-Unity 6000.0.58f1 이상
-```
-
-Unity Gaming Services 설정이 필요합니다.
-
-| 서비스 | 용도 |
-|---|---|
-| Relay | 방 생성 / 참가 |
-| Authentication | 익명 로그인 |
-| Vivox | 음성 채팅 |
-
-Unity Cloud Dashboard에서 프로젝트를 연결하고 위 세 가지를 활성화해야 온라인 기능이 동작합니다. **설정이 없어도 프로젝트는 열리고 컴파일됩니다.**
-
 ---
-
-## 개발 정보
-
-| | |
-|---|---|
-| 개발 | 1인 (기획 · 프로그래밍 · 연출 · UI) |
-| 기간 | 2026.09 ~ |
-| 담당 | 전체 |
-
-멀티플레이 구조, 게임 로직, 연출, UI 연동, 셰이더를 직접 작성했습니다.
-
+ENGLISH VERSION
+SPACE GAMBLE
+A 1v1 online psychological gamble game built with Unity 6.
+Inspired by Indian Poker mechanics — you can see your opponent's number, but your own number is hidden.
+	
+Genre	1v1 Psychological / Gamble
+Platform	PC (Windows)
+Players	2 Players Online
+Match Duration	Approx. 3 minutes
+Engine	Unity 6000.0.58f1 (URP)
 ---
-
-## 알려진 제약
-
-**호스트 권위 구조**
-
-방을 만든 쪽이 심판 역할을 겸합니다. 따라서 호스트가 자신의 클라이언트를 조작하면 은닉 정보에 접근할 수 있습니다.
-
-다만 **카드 추첨·승부 판정·확률 판정을 전부 심판이 단독으로 처리**하고 플레이어는 의사만 보내는 구조라, 심판 역할만 별도 서버로 옮기면 해결됩니다. **플레이어 측 코드는 수정이 필요 없습니다.**
-
-**2인 고정**
-
-관전자나 3인 이상은 지원하지 않습니다. 1대1 심리전이 기획의 본질이라 확장 계획은 없습니다.
-
+About The Game
+Every round, both players receive a number from 1 to 10.
+You can see your opponent's number, but your own number is masked as `??`.
+The player with the lower number must press their ejection button. The emergency button is malfunctioning, meaning its activation probability fluctuates each round — and that probability accumulates continuously across rounds.
+If a malfunction leads to an ejection, that player is eliminated and the game ends immediately.
+There is only one way to figure out your number — Observe your opponent.
+With a fixed first-person perspective, your opponent's gaze and voice are virtually your only clues.
 ---
-
-## 향후 계획
-
-- [ ] 아이템 시스템 — 부분 정보를 주는 도구 (추론 재료 보강)
-- [ ] 확률 구간에 따른 선내 연출 변화
-- [ ] 재접속 복구
-- [ ] itch.io 배포
+Rules
+Round Flow
+Order	Phase	Details
+①	Priority Allocation	Each player receives a number (1–10)
+②	Negotiation	Discuss and select your action
+③	Reveal	Choices and numbers are revealed simultaneously
+④	Ejection Attempt	The player with the lower number presses their button once
+⑤	Resolution	If survived, probability changes → Return to ① / If ejected, Game Over
+Action Choices
+During the Negotiation Phase, players choose one of three actions. The choice selected when time expires is locked in, but it can be changed freely until then.
+Action	Effect	Limit
+GO	Proceed with the round normally	Unlimited
+FOLD	Nullifies the round; nobody presses the button	2 times per match
+OVERLOAD	Multiplies the ejection probability multiplier for the round	Unlimited
+FOLD remaining uses are private to each player. Rounds ended by a FOLD do not reveal the numbers, keeping your opponent guessing whether it was a bluff.
+OVERLOAD is inspired by Blackjack's Double Down. It serves as a high-pressure tactic to force a FOLD when you are confident in your number. However, the multiplier applies to both players, meaning if your judgment is wrong, you will press the button with elevated risk.
+---
+Controls
+Key	Action
+Mouse	Look around (Head rotation)
+Left Click	Interact with targeted object
+F4	Ready / Unready
+ESC	Settings Menu
+C	Copy Room Code (Lobby)
+The mouse cursor is locked to the center of the screen. You interact with buttons by looking directly at them, not by clicking with a free cursor.
+To choose an action, you must look down at your console; to press the ejection button, you must look up at it. Since your head movements are synchronized in real-time, your opponent can read where you are looking. The control scheme itself is an intentional component of the psychological game.
+---
+How to Play (Download & Setup)
+Download via itch.io (For Players)
+> **Requirement:** Both players must have an active **Internet Connection**.
+Download: Download the game archive (`.zip`) from the itch.io page.
+Extract: Extract the downloaded `.zip` file into any folder of your choice.
+Run the Game: Open the extracted folder and run `Space_Gamble.exe`.
+Host or Join a Room:
+Player A (Host): Click [Create Room] on the main menu, then press `C` to copy the generated room code and send it to Player B.
+Player B (Client): Click [Join Room] on the main menu, enter the received code, and join.
+Ready & Play: Once both players press `F4` to set their status to Ready in the lobby, the game begins.
+---
+Opening the Project (For Developers)
+Engine Requirement: `Unity 6000.0.58f1` or higher
+---
+Development
+	
+Developer	Solo (Game Design, Programming, Visuals, UI)
+Timeline	Sept 2026 ~ Present
