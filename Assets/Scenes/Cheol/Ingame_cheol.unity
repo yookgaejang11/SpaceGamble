@@ -10589,7 +10589,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -11450,7 +11450,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   isLoading: 0
   crossHair: {fileID: 609360036}
-  SOGameRule: {fileID: 11400000, guid: d5a2a910cd4120748b2f1244ae7904fb, type: 2}
+  SOGameRule: {fileID: 11400000, guid: 717eec91d767ed64b8d4ac0f229dfb63, type: 2}
   gameRule: {fileID: 0}
   seats:
   - {fileID: 3466929438021610146}
@@ -19738,7 +19738,7 @@ MonoBehaviour:
   - {fileID: 8924147329491100833}
   shakeTime: 0.4
   shakeAmount: 0.03
-  flyTime: 2
+  flyTime: 1.5
   flyHeight: 45
   flyCurve:
     serializedVersion: 2

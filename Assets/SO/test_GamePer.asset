@@ -22,7 +22,7 @@ MonoBehaviour:
   extraVal: -50
   talkingTime: 1
   cutSceneTime: 10
-  basicPer: 100
+  basicPer: 10
   overloadMul: 1.5
   bothOverloadMul: 2
   lookSendRate: 15

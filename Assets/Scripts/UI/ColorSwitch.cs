@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,8 +6,9 @@ public class ColorSwitch : ClientUIBase
     [Header("기준")]
     [Tooltip("이 확률 이상이면 위험 색")]
     public int threshold = 50;
-    float target;
-    public float fadeSpeed;
+
+    [Tooltip("색 전환 속도. 0이면 즉시")]
+    public float fadeSpeed = 2f;
 
     [Tooltip("체크하면 0~100%에 걸쳐 계속 변한다 (threshold 무시)")]
     public bool continuous;
@@ -16,23 +16,24 @@ public class ColorSwitch : ClientUIBase
     [Header("테이블 에미션")]
     public Renderer[] emissionRenenders;
     public string emissionProperty = "_EmissionColor";
-    [ColorUsage(true, true)] public Color emissionNormal = new Color();
-    [ColorUsage(true, true)] public Color emissionDanger = new Color(1f, 0.15f, 0.1f);
+    [ColorUsage(true, true)] public Color emissionNormal = new Color(0f, 0.78f, 1f, 1f);
+    [ColorUsage(true, true)] public Color emissionDanger = new Color(2f, 0.26f, 0.16f, 1f);
 
     [Header("홀로그램 색")]
     public Renderer[] hologramRenenders;
     public string edgeProperty = "_EdgeColor";
-    [ColorUsage(true, true)] public Color edgeNormal = new Color();
-    [ColorUsage(true, true)] public Color edgeDanger = new Color();
+    [ColorUsage(true, true)] public Color edgeNormal = new Color(0f, 0.78f, 1f, 1f);
+    [ColorUsage(true, true)] public Color edgeDanger = new Color(1f, 0.15f, 0.1f, 1f);
 
     Material[] emissionMats;
     Material[] hologramMats;
 
-    int per;
+    int per;            
+    int shownPer;       
     float blend;
     float lastApplied = -1f;
 
-    private void Awake()
+    void Awake()
     {
         emissionMats = Collect(emissionRenenders);
         hologramMats = Collect(hologramRenenders);
@@ -50,36 +51,32 @@ public class ColorSwitch : ClientUIBase
     protected override void Subscribe()
     {
         client.OnPerChanged += OnPerChanged;
-        client.OnChangedPhase += OnChangedPhase; //페이즈 변경 이벤트 추가 구독
+        client.OnChangedPhase += OnChangedPhase;
     }
 
     protected override void Unsubscribe()
     {
         client.OnPerChanged -= OnPerChanged;
-        client.OnChangedPhase -= OnChangedPhase; //이벤트 해제
+        client.OnChangedPhase -= OnChangedPhase;
     }
 
     void OnPerChanged(int before, int cur) => per = cur;
 
-    //페이즈 변경 시 필요한 처리 (필요시 사용)
+    // 라운드가 시작될 때만 표시용 값을 당겨온다.
+    // 덕분에 Result 연출에서 확률이 변해도 색은 다음 라운드까지 그대로다.
     void OnChangedPhase(GamePhase phase)
     {
-        // RoundStart 진입 시 즉시 갱신하고 싶다면 추가 로직 배치 가능
+        if (phase == GamePhase.RoundStart)
+            shownPer = per;
     }
 
     void Update()
     {
-        // client가 없거나 연결이 끊긴 경우 예외 방지
         if (client == null) return;
 
-        //GamePhase가 RoundStart일 때만 per 기준 색상을 변경한다.
-
-        if (client.curPhase == GamePhase.RoundStart)
-        {
-            target = continuous
-                ? Mathf.Clamp01(per / 100f)
-                : (per >= threshold ? 1f : 0f);
-        }
+        float target = continuous
+            ? Mathf.Clamp01(shownPer / 100f)
+            : (shownPer >= threshold ? 1f : 0f);
 
         blend = fadeSpeed <= 0f
             ? target
