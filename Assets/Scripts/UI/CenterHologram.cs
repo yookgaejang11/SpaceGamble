@@ -194,7 +194,7 @@ public class CenterHologram : ClientUIBase
     // 소리는 전부 SoundManager가 관리한다. 여기엔 SoundManager 'Sounds' 목록의 id(이름)만 적는다
     [Tooltip("SoundManager의 Sounds 목록에 있는 id")]
     public string sndLever = "lever";
-    public string sndScrambleLoop = "scramble_Loop";
+    public string sndScrambleLoop = "slot_tick";
     public string sndReveal = "reveal";
     public string sndOverload = "overload";
     public string sndCharge = "charge";
@@ -693,10 +693,9 @@ public class CenterHologram : ClientUIBase
             SetMessage("PRIORITY CHECK", normalColor);
             if (seatBoard != null)
             {
-                SoundManager.PlayLoop(sndScrambleLoop);
+                SoundManager.Play(sndScrambleLoop);//숫자 공개 스크램블 사운드
                 seatBoard.PlayReveal(myCard, oppCard);
                 while (seatBoard.IsRolling) yield return null;      // 보드가 멈출 때까지
-                SoundManager.StopLoop(sndScrambleLoop);
             }
             else yield return new WaitForSeconds(0.8f);
 
@@ -1231,6 +1230,7 @@ public class CenterHologram : ClientUIBase
     // 모든 소리는 SoundManager로
     void Play(string id)
     {
+        Debug.Log(id);
         if (!string.IsNullOrEmpty(id)) SoundManager.Play(id);
     }
 

@@ -219,13 +219,14 @@ public class SeatBoard : ClientUIBase
         // 상대 칸은 그대로 두고 내 칸만 돈다 (슬롯머신과 같은 감속)
         float t = 0f;
         int last = 0;
+        Play(tickClip);
         while (t < revealRollTime)
         {
             float k = t / revealRollTime;
             float interval = Mathf.Lerp(fastInterval, slowInterval, k * k);
             last = RandomExcept(last);
             SetMine(last.ToString(), rollingColor);
-            Play(tickClip);
+            
             yield return new WaitForSeconds(interval);
             t += interval;
         }

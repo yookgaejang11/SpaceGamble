@@ -147,7 +147,6 @@ public class LoadingScreen : MonoBehaviour
     /// <summary>로딩 중엔 뒤의 UI(로비 버튼 등)를 못 누르게 막는다</summary>
     void SetBlock(bool on)
     {
-        Debug.LogWarning($"SetBlock {on}");
         GameManager.Instance.isLoading = on;
         if (group == null) return;
         group.blocksRaycasts = on;

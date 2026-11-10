@@ -2138,7 +2138,7 @@ Light:
   serializedVersion: 11
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 100
+  m_Intensity: 55
   m_Range: 10.76
   m_SpotAngle: 61.9534
   m_InnerSpotAngle: 9.388596
@@ -19814,7 +19814,7 @@ MonoBehaviour:
   endWinColor: {r: 0.55, g: 0.85, b: 1, a: 1}
   endLoseColor: {r: 1, g: 0.35, b: 0.3, a: 1}
   sndLever: lever
-  sndScrambleLoop: scramble_tick
+  sndScrambleLoop: slot_tick
   sndReveal: reveal
   sndOverload: overload
   sndCharge: charge
@@ -23087,7 +23087,7 @@ Light:
   serializedVersion: 11
   m_Type: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 100
+  m_Intensity: 55.4
   m_Range: 10.76
   m_SpotAngle: 61.9534
   m_InnerSpotAngle: 9.38
@@ -24365,7 +24365,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6804329221450524810, guid: fd4ee0a7d6280a54ebb335b06e259d77, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6823432874803664029, guid: fd4ee0a7d6280a54ebb335b06e259d77, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -26211,7 +26211,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2279428048469639982, guid: 88fc867e775935146b3e013c776a673f, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2366998830476712883, guid: 88fc867e775935146b3e013c776a673f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
@@ -31523,9 +31523,9 @@ MonoBehaviour:
     - {fileID: 8300000, guid: be242902978ae3145b4fd5138c8647f0, type: 3}
     volume: 1
     pitchRange: {x: 1, y: 1}
-  - id: scramble_Loop
+  - id: reveal_scramble
     clips:
-    - {fileID: 8300000, guid: 77a4fafa692e3a44382e92493e41c093, type: 3}
+    - {fileID: 8300000, guid: 039212db3f4b4414c85b9ecab15840cb, type: 3}
     volume: 1
     pitchRange: {x: 1, y: 1}
   - id: reveal
@@ -31540,7 +31540,7 @@ MonoBehaviour:
     pitchRange: {x: 1, y: 1}
   - id: charge
     clips:
-    - {fileID: 8300000, guid: f206e87ee5992b74390a7c370e0d2d7b, type: 3}
+    - {fileID: 8300000, guid: a0880f87076cb9345be089cc778bcc60, type: 3}
     volume: 1
     pitchRange: {x: 1, y: 1}
   - id: eject
@@ -31560,7 +31560,7 @@ MonoBehaviour:
     pitchRange: {x: 1, y: 1}
   - id: slot_tick
     clips:
-    - {fileID: 8300000, guid: 214f20ccfe458f14abb2746bafa43e8c, type: 3}
+    - {fileID: 8300000, guid: 6401dd710c85cbc429cdb6bc56dc997b, type: 3}
     volume: 1
     pitchRange: {x: 1, y: 1}
   - id: slot_lock

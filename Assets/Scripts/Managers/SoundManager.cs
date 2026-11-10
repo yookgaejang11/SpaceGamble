@@ -25,7 +25,7 @@ public class SoundManager : ClientUIBase
     {
         // CenterHologram (가운데 홀로그램 연출)
         new Sound { id = "lever" },             // 레버 당김
-        new Sound { id = "scramble_tick" },     // 홀로그램 숫자 스크램블 틱
+        new Sound { id = "slot_tick" },     // 홀로그램 숫자 스크램블 틱
         new Sound { id = "reveal" },            // 선택/카드 공개 "딱"
         new Sound { id = "overload" },          // OVERLOAD 경고
         new Sound { id = "charge" },            // 사출 충전 (버튼 누른 직후)
