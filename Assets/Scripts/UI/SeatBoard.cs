@@ -164,7 +164,10 @@ public class SeatBoard : ClientUIBase
                 Punch(MyTexts);
                 Play(lockClip);
             }
-
+            else
+            {
+                Play(tickClip);
+            }
             // 아직 도는 칸들에 랜덤 숫자 (직전 숫자와 겹치지 않게 해서 '바뀌는 느낌'을 살린다)
             if (!myLocked) { lastMine = RandomExcept(lastMine); SetMine(lastMine.ToString(), rollingColor); }
             lastTheirs = RandomExcept(lastTheirs);
@@ -219,14 +222,13 @@ public class SeatBoard : ClientUIBase
         // 상대 칸은 그대로 두고 내 칸만 돈다 (슬롯머신과 같은 감속)
         float t = 0f;
         int last = 0;
-        Play(tickClip);
         while (t < revealRollTime)
         {
             float k = t / revealRollTime;
             float interval = Mathf.Lerp(fastInterval, slowInterval, k * k);
             last = RandomExcept(last);
             SetMine(last.ToString(), rollingColor);
-            
+            Play(tickClip);
             yield return new WaitForSeconds(interval);
             t += interval;
         }

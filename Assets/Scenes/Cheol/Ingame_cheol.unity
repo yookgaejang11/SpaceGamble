@@ -23160,7 +23160,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1588549934
 RectTransform:
   m_ObjectHideFlags: 0
@@ -31525,7 +31525,7 @@ MonoBehaviour:
     pitchRange: {x: 1, y: 1}
   - id: reveal_scramble
     clips:
-    - {fileID: 8300000, guid: 039212db3f4b4414c85b9ecab15840cb, type: 3}
+    - {fileID: 8300000, guid: fc05f72b7f07dd447a8eb88e82418976, type: 3}
     volume: 1
     pitchRange: {x: 1, y: 1}
   - id: reveal
@@ -31560,7 +31560,7 @@ MonoBehaviour:
     pitchRange: {x: 1, y: 1}
   - id: slot_tick
     clips:
-    - {fileID: 8300000, guid: 6401dd710c85cbc429cdb6bc56dc997b, type: 3}
+    - {fileID: 8300000, guid: fc05f72b7f07dd447a8eb88e82418976, type: 3}
     volume: 1
     pitchRange: {x: 1, y: 1}
   - id: slot_lock
