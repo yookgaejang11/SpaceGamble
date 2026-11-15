@@ -149,7 +149,7 @@ public class GameSession
 public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance { get; private set; }
-
+    public bool isLoading;
     public GameObject crossHair;
     [Header("규칙")]
     public GamePer SOGameRule;

@@ -93,6 +93,7 @@ public class PauseMenu : MonoBehaviour
         if (RelayManager.Instance == null) return;
         if (AskUI != null) AskUI.SetActive(false);
         ForceClose();
+        Debug.Log($"exitReason{exitReason}, {(string.IsNullOrEmpty(exitReason) ? null : exitReason)}");
         RelayManager.Instance.LeaveRoom(string.IsNullOrEmpty(exitReason) ? null : exitReason);
     }
 }
