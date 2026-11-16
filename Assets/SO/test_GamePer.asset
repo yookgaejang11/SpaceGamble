@@ -20,9 +20,9 @@ MonoBehaviour:
   downMaxVal: 6
   downMinVal: 1
   extraVal: -50
-  talkingTime: 1
+  talkingTime: 20
   cutSceneTime: 10
-  basicPer: 100
+  basicPer: 0
   overloadMul: 1.5
   bothOverloadMul: 2
   lookSendRate: 15

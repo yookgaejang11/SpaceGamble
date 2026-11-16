@@ -48,17 +48,20 @@ public class ColorSwitch : ClientUIBase
         return list.ToArray();
     }
 
+    
     protected override void Subscribe()
     {
-        client.OnPerChanged += OnPerChanged;
+        CenterHologram.PerShown += OnperShown;
         client.OnChangedPhase += OnChangedPhase;
     }
 
     protected override void Unsubscribe()
     {
+        CenterHologram.PerShown -= OnperShown;
         client.OnPerChanged -= OnPerChanged;
         client.OnChangedPhase -= OnChangedPhase;
     }
+    void OnperShown(int shown) => per = shown;
 
     void OnPerChanged(int before, int cur) => per = cur;
 
