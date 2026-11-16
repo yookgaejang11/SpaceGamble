@@ -117,7 +117,11 @@ public class GameClient : NetworkBehaviour
             myChoice = Choice.Go;
             OnMyChoiceChanged?.Invoke(myChoice);
         }
-
+        if (phase == GamePhase.waiting || phase == GamePhase.RoundStart)
+        {
+            if (GameManager.Instance != null && GameManager.Instance.crossHair != null)
+                GameManager.Instance.crossHair.SetActive(true);
+        }
         OnChangedPhase?.Invoke(phase);
     }
 

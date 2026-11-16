@@ -11,6 +11,8 @@ public class CenterHologram : ClientUIBase
     /// GameResultText 같은 다른 스크립트가 이걸 듣고 EndGame 문구를 켠다.
     /// </summary>
     public static event System.Action<bool> EndGameReady;
+    public static event System.Action<int> PerShown;
+    Coroutine perCountRoutine;
 
     [Header("확률 (앞면 / 뒷면)")]
     public TextMeshPro[] perTexts;
@@ -140,7 +142,10 @@ public class CenterHologram : ClientUIBase
     [Header("OVERLOAD 확률 표시")]
     [Tooltip("확률 숫자가 원래 값 → 올라간 값으로 올라가는 시간(초)")]
     public float overloadCountTime = 0.6f;
-
+    [Header("확률 증감 연출 시간")]
+    public float perStepTime = 0.06f;
+    [Tooltip("변동 폭이 커도 이 시간을 넘지 않게 한다")]
+    public float perCountMaxTime = 0.9f;
     [Header("사출 사이렌")]
     [Tooltip("사출될 때 켤 사이렌 오브젝트들 (불 2개 등). 평소엔 꺼둔다 (오브젝트째 꺼도 됨)")]
     public GameObject[] sirenObjects = new GameObject[2];
@@ -306,7 +311,18 @@ public class CenterHologram : ClientUIBase
         SetActiveTexts(roundTexts, phase != GamePhase.waiting && phase != GamePhase.GameOver);
 
         if (phase != GamePhase.RoundStart && phase != GamePhase.Open && phase != GamePhase.Result)
+        {
             StopPresentation();
+
+            // 연출이 중간에 잘렸더라도 최종 확률 숫자는 확실히 갱신 (변화가 있을 때만 색상 변경)
+            if (pendingPer.HasValue)
+            {
+                var (before, now) = pendingPer.Value;
+                pendingPer = null;
+                Color c = (before == now) ? GetCurrentPerColor() : ((now > before) ? warnColor : normalColor);
+                ShowPer(now, c);
+            }
+        }
 
         // GameOver가 아니면 게임 끝 연출(타임라인/문구)도 끊고 숨긴다 (재시작, 방 대기 등)
         if (phase != GamePhase.GameOver)
@@ -321,6 +337,7 @@ public class CenterHologram : ClientUIBase
 
             case GamePhase.RoundStart:
                 ResetStage();                                   // GameOver → 재시작일 때 모델 복구
+                SetPerColor(normalColor);                       // (라운드 시작 시 normalColor로 복귀)
                 StartPresentation(phase);
                 break;
 
@@ -398,10 +415,33 @@ public class CenterHologram : ClientUIBase
         Log($"레버 이벤트: 자리 {seat} {Time.time:F2}");
     }
 
+    void StartCountPer(int before, int now)
+    {
+        StopCountPer();
+        perCountRoutine = StartCoroutine(CountPer(before, now));
+    }
+
+    void StopCountPer()
+    {
+        if (perCountRoutine != null)
+        {
+            StopCoroutine(perCountRoutine);
+            perCountRoutine = null;
+        }
+    }
 
     void HandlePer(int before, int now)
     {
         pendingPer = (before, now);
+
+        // talkTime(EndTalk 직후) / Open / Press / Result 연출 중에는 각 코루틴이 정확한 타이밍에 CountPer를 실행한다
+        if (client == null || (client.curPhase != GamePhase.talkTime &&
+                               client.curPhase != GamePhase.Open &&
+                               client.curPhase != GamePhase.Press &&
+                               client.curPhase != GamePhase.Result))
+        {
+            StartCountPer(before, now);
+        }
     }
 
     void HandleChoiceRevealed(Choice mine, Choice opponent)
@@ -435,6 +475,32 @@ public class CenterHologram : ClientUIBase
     {
         StopGameOver();
         gameOverRoutine = StartCoroutine(GameOverRoutine());
+    }
+
+    IEnumerator CountPer(int before, int now)
+    {
+        // 값이 변하지 않았으면(before == now) 기존 텍스트 색상을 그대로 유지
+        if (before == now)
+        {
+            ShowPer(now, GetCurrentPerColor());
+            yield break;
+        }
+
+        Color c = (now > before) ? warnColor : normalColor;
+        int step = (now > before) ? 1 : -1;
+        int v = before;
+        float wait = Mathf.Min(perStepTime, perCountMaxTime / Mathf.Abs(now - before));
+
+        while (v != now)
+        {
+            v += step;
+            ShowPer(v, c);
+
+            if (wait > 0f) yield return new WaitForSeconds(wait);
+        }
+
+        ShowPer(now, c);
+        perCountRoutine = null;
     }
 
     IEnumerator GameOverRoutine()
@@ -635,7 +701,7 @@ public class CenterHologram : ClientUIBase
         yield return new WaitForSeconds(0.8f);
     }
 
-    /// <summary>최대 약 3초: 선택 공개 → (OVERLOAD 경고) → 누를 사람 공개</summary>
+    /// <summary>최대 약 3초: 선택 공개 → (OVERLOAD 경고) → 누를 사람 공개 (또는 FOLD/동점 시 확률 변동)</summary>
     IEnumerator OpenRoutine()
     {
         // 1) 선택 공개
@@ -698,15 +764,24 @@ public class CenterHologram : ClientUIBase
             yield return new WaitForSeconds(1.0f);
         }
 
-        // 2) 누를 사람 공개
+        // 2) 누를 사람 공개 (또는 FOLD / 동점 시 확률 변동 연출)
         if (pendingDecision.HasValue)
         {
             var (result, myTurn) = pendingDecision.Value;
 
-            if (result == Result.draw)
-                SetMessage("SURVIVAL PRIORITY EQUAL", normalColor);
-            else if (result == Result.fold)
-                SetMessage("ROUND ABORTED", normalColor);
+            if (result == Result.draw || result == Result.fold)
+            {
+                SetMessage(result == Result.draw ? "SURVIVAL PRIORITY EQUAL" : "ROUND ABORTED", normalColor);
+
+                if (pendingPer.HasValue)
+                {
+                    var (before, now) = pendingPer.Value;
+                    pendingPer = null;
+                    overloadShown = false; // 아래 복구 코드가 카운팅 결과를 덮어쓰지 않도록 해제
+                    StopCountPer();
+                    yield return CountPer(before, now);
+                }
+            }
             else
             {
                 // 누르는 사람 자리 = 내가 누르면 내 자리, 아니면 상대 자리 (양쪽 화면에서 같은 쪽이 된다)
@@ -723,7 +798,7 @@ public class CenterHologram : ClientUIBase
         pendingDecision = null;
         pendingCards = null;
 
-        // OVERLOAD로 올려 보여줬는데 아무도 안 누르는 라운드(FOLD/동점)면 원래 확률로 되돌린다
+        // OVERLOAD로 올려 보여줬는데 아무도 안 누르는 라운드(FOLD/동점)에서 확률 변동이 없었던 경우 원래 확률로 되돌린다
         if (overloadShown && presserSeat < 0)
             ShowPer(shownPer, normalColor);
         overloadShown = false;
@@ -743,7 +818,7 @@ public class CenterHologram : ClientUIBase
         if (presserSeat >= 0 && presserSeat < pressButtonAnimators.Length)
         {
             TriggerLater(pressButtonAnimators[presserSeat], pressTrigger, buttonDelay);
-            PlayLater(button_Push,buttonDelay);
+            PlayLater(button_Push, buttonDelay);
         }
 
         SetMessage("EJECTION SYSTEM CHARGING...", warnColor);
@@ -779,12 +854,13 @@ public class CenterHologram : ClientUIBase
         if (pendingPer.HasValue)
         {
             var (before, now) = pendingPer.Value;
-            ShowPer(now, (now > before) ? warnColor : normalColor);
+            pendingPer = null;
+            StopCountPer();
+            yield return CountPer(before, now);
             yield return new WaitForSeconds(1.0f);
         }
 
         pendingOuted = null;
-        pendingPer = null;
     }
 
 
@@ -1078,8 +1154,9 @@ public class CenterHologram : ClientUIBase
 
     // ────────────────────────── 헬퍼 ──────────────────────────
 
-        public void ShowCheatPer(int per)
+    public void ShowCheatPer(int per)
     {
+        StopCountPer();
         ShowPer(per, warnColor);
         SetMessage($"OVERRIDE  EJECTION RISK {per}%", warnColor);
 
@@ -1100,6 +1177,15 @@ public class CenterHologram : ClientUIBase
         shownPer = per;                                     // 지금 화면의 기본 확률 기억 (OVERLOAD 계산용)
         SetTexts(perTexts, $"{per}%");
         SetPerColor(c);
+        PerShown?.Invoke(per);
+    }
+
+    Color GetCurrentPerColor()
+    {
+        if (perTexts != null)
+            foreach (var t in perTexts)
+                if (t != null) return t.color;
+        return normalColor;
     }
 
     void SetPerColor(Color c)

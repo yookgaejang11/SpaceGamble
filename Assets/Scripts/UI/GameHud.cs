@@ -12,11 +12,12 @@ public class GameHud : MonoBehaviour
     [Header("복사 키")]
     public KeyCode copyKey = KeyCode.C;
     [Tooltip("키 안내 / 복사 완료 문구를 띄울 텍스트. 없으면 비워두기")]
+    public TextMeshProUGUI codeHintTxt;
     public TextMeshProUGUI hintText;
+    public string codeHintText = "[TAB] Show Code";
     public string hintMessage = "[C] COPY";
     public string copiedMessage = "COPIED!";
     public float copiedShowTime = 1.5f;
-    [SerializeField] GameObject HideCode;
     float copiedUntil;
 
 
@@ -31,7 +32,17 @@ public class GameHud : MonoBehaviour
 
         if (!shown) return;
 
-        if (roomCodeText != null) roomCodeText.text = "Room Code:" + code;
+        if (codeHintTxt != null) 
+        {
+            if (Input.GetKey(KeyCode.Tab))
+            {
+                codeHintTxt.text = "Room Code:" + code;
+            }
+            else
+            {
+                codeHintTxt.text = codeHintText;
+            }
+        } 
 
         if (Input.GetKeyDown(copyKey) && !TypingInInputField())
         {
@@ -42,18 +53,6 @@ public class GameHud : MonoBehaviour
         if (hintText != null)
             hintText.text = (Time.unscaledTime < copiedUntil) ? copiedMessage : hintMessage;
 
-        if (HideCode != null)
-        {
-            if (Input.GetKey(KeyCode.Tab))
-            {
-                HideCode.gameObject.SetActive(false);
-            }
-
-            if (Input.GetKeyUp(KeyCode.Tab))
-            {
-                HideCode.gameObject.SetActive(true);
-            }
-        }
 
     }
 

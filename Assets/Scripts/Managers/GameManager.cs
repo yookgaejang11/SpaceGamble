@@ -45,7 +45,7 @@ public class GameSession
 
     public int[] foldCounts = new int[2];               // 사용한 Fold 횟수
 
-    public int maxFold = 2;                             // 최대 fold 횟수
+    public int maxFold = 100;                             // 최대 fold 횟수
 
     public bool isGameOver;                             // 게임 끝났는지
 
@@ -124,25 +124,22 @@ public class GameSession
             winnerId = (pressedPlayer == 0) ? 1 : 0;
             isGameOver = true;
         }
-        else
-        {
-            int upDownPer = rand.Next(1, 101);
-
-            if (upDownPer <= gamePer.extraPer)
-            {
-                curOutPer -= gamePer.extraVal;
-            }
-            else if (upDownPer <= gamePer.upPer + gamePer.extraPer)
-            {
-                curOutPer += rand.Next(gamePer.upMinVal, gamePer.upMaxVal + 1);
-            }
-            else
-            {
-                curOutPer -= rand.Next(gamePer.downMinVal, gamePer.downMaxVal + 1);
-            }
-            curOutPer = Math.Clamp(curOutPer, 0, 100);
-        }
     }
+
+    public void ApplyPerChange(GamePer gamePer)
+    {
+        int upDownPer = rand.Next(1, 101);
+
+        if (upDownPer <= gamePer.extraPer)
+            curOutPer -= gamePer.extraVal;
+        else if (upDownPer <= gamePer.upPer + gamePer.extraPer)
+            curOutPer += rand.Next(gamePer.upMaxVal, gamePer.upMaxVal + 1);
+        else
+            curOutPer -= rand.Next(gamePer.downMinVal, gamePer.downMaxVal + 1);
+
+        curOutPer = Math.Clamp(curOutPer, 0, 100);
+    }
+
 }
 
 
@@ -264,6 +261,8 @@ public class GameManager : NetworkBehaviour
         clients[0].ReceiveMyFoldLeftRpc(session.maxFold - session.foldCounts[0], clients[0].ToMe);
         clients[1].ReceiveMyFoldLeftRpc(session.maxFold - session.foldCounts[1], clients[1].ToMe);
 
+        SendPer(session.curOutPer, session.curOutPer);
+
         ChangePhase(GamePhase.RoundStart);
     }
 
@@ -276,9 +275,6 @@ public class GameManager : NetworkBehaviour
 
         bool readyPhase = (phase == GamePhase.waiting || phase == GamePhase.GameOver);
 
-        if (phase == GamePhase.waiting || phase == GamePhase.RoundStart)
-            crossHair.SetActive(true);
-        
         for (int i = 0; i < 2; i++)
         {
             if (clients[i] == null) continue;
@@ -338,6 +334,13 @@ public class GameManager : NetworkBehaviour
 
         clients[0].ReceiveRoundResultRpc(r, session.pressedPlayer == 0, clients[0].ToMe);
         clients[1].ReceiveRoundResultRpc(r, session.pressedPlayer == 1, clients[1].ToMe);
+
+        if (session.pressedPlayer == -1)
+        {
+            int before = session.curOutPer;
+            session.ApplyPerChange(gameRule);
+            SendPer(before, session.curOutPer);
+        }
 
         ChangePhase(GamePhase.Open);
     }
@@ -410,7 +413,6 @@ public class GameManager : NetworkBehaviour
 
         isReady[playerIndex] = !isReady[playerIndex];
 
-
         clients[0].ReceiveReadyRpc(isReady[0], isReady[1], clients[0].ToMe);
         clients[1].ReceiveReadyRpc(isReady[1], isReady[0], clients[1].ToMe);
 
@@ -427,11 +429,14 @@ public class GameManager : NetworkBehaviour
         int before = session.curOutPer;
         session.PressButton(gameRule);
 
+        // 생존했으면 사출 확률 증감 적용
+        if (!session.isGameOver)
+            session.ApplyPerChange(gameRule);
+
         clients[0].ReceiveOutResultRpc(session.isGameOver, clients[0].ToMe);
         clients[1].ReceiveOutResultRpc(session.isGameOver, clients[1].ToMe);
 
-        clients[0].ReceivePerRpc(before, session.curOutPer, clients[0].ToMe);
-        clients[1].ReceivePerRpc(before, session.curOutPer, clients[1].ToMe);
+        SendPer(before, session.curOutPer);
 
         ChangePhase(GamePhase.Result);
     }
@@ -462,10 +467,14 @@ public class GameManager : NetworkBehaviour
     public int CheatAddOutPer(int amount)
     {
         if (!IsServer || session == null || session.isGameOver) return -1;
+
+        int before = session.curOutPer;
         session.curOutPer = Math.Clamp(session.curOutPer + amount, 0, 100);
+
+        SendPer(before, session.curOutPer);
+
         return session.curOutPer;
     }
-    // ===== [추가] 끝 =====
 
     void BroadcastPresence()
     {
@@ -473,5 +482,11 @@ public class GameManager : NetworkBehaviour
             clients[0].ReceiveOpponentPresentRpc(clients[1] != null, clients[0].ToMe);
         if (clients[1] != null)
             clients[1].ReceiveOpponentPresentRpc(clients[0] != null, clients[1].ToMe);
+    }
+
+    void SendPer(int before, int now)
+    {
+        if (clients[0] != null) clients[0].ReceivePerRpc(before, now, clients[0].ToMe);
+        if (clients[1] != null) clients[1].ReceivePerRpc(before, now, clients[1].ToMe);
     }
 }
