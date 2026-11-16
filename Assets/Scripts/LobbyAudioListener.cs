@@ -13,7 +13,7 @@ public class LobbyAudioListener : MonoBehaviour
     {
         listener = GetComponent<AudioListener>();
     }
-
+    void test() => timer = 0;
     void Update()
     {
         // 나 말고 켜진 귀가 있나?
